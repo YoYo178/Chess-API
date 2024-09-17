@@ -2,7 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 
-var app = express();
+let app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
