@@ -4,9 +4,11 @@
  * Module dependencies.
  */
 
-var app = require('../app');
-var debug = require('debug')('chess-api:server');
-var http = require('http');
+import app from "../app.js"
+import debugModule from "debug"
+import http from "http"
+
+const debug = debugModule("chess-api:server")
 
 /**
  * Get port from environment and store in Express.
