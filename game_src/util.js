@@ -131,14 +131,14 @@ export function encodeMove(moveObj) {
 	if (moveObj.isAttackableMove)
 		move += "#"
 
-	if (moveObj.isKillingMove)
-		move += "!" + (moveObj.killTarget ? logicalToVisual(moveObj.killTarget.position) : "")
-
 	if (moveObj.isEnPassant)
 		move += "^"
 
 	if (moveObj.isFriendlyPiece)
 		move += "@"
+
+	if (moveObj.isKillingMove)
+		move += "!" + (moveObj.killTarget ? logicalToVisual(moveObj.killTarget.position) : "")
 
 	return move
 }

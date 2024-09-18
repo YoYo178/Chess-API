@@ -25,7 +25,9 @@ router.post("/:pos", (req, res) => {
 
     let pos = req.params.pos
     let piece = game.getPieceOnPosition(visualToLogical(pos))
-    game.move(piece, visualToLogical(req.body.moveTo))
+    req.body.killPos ?
+        game.kill(piece, visualToLogical(req.body.moveTo), game.getPieceOnPosition(visualToLogical(req.body.killPos))) :
+        game.move(piece, visualToLogical(req.body.moveTo))
     res.send({ status: "success", positions: game.positions })
 })
 
