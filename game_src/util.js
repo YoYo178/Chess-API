@@ -121,3 +121,24 @@ export function createPawnDiagonalKillingMove(piece, x, y, targetPiece) {
 }
 
 export const games = new Map();
+
+export function encodeMove(moveObj) {
+	let move = logicalToVisual(moveObj)
+	move += ":"
+	if (moveObj.isPawnDiagonal)
+		move += "/"
+
+	if (moveObj.isAttackableMove)
+		move += "#"
+
+	if (moveObj.isKillingMove)
+		move += "!" + (moveObj.killTarget ? logicalToVisual(moveObj.killTarget.position) : "")
+
+	if (moveObj.isEnPassant)
+		move += "^"
+
+	if (moveObj.isFriendlyPiece)
+		move += "@"
+
+	return move
+}

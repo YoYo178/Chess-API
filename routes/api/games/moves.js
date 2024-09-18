@@ -1,7 +1,7 @@
 import express from "express";
 let router = express.Router({ mergeParams: true });
 
-import { games, visualToLogical } from "../../../game_src/util.js";
+import { encodeMove, games, visualToLogical } from "../../../game_src/util.js";
 
 router.get("/:pos", (req, res) => {
     let id = req.params.gameID
@@ -12,7 +12,7 @@ router.get("/:pos", (req, res) => {
 
     let pos = req.params.pos
     let piece = game.getPieceOnPosition(visualToLogical(pos))
-    let moves = piece.getMovablePositions()
+    let moves = piece.getMovablePositions().map(encodeMove)
     res.send({ status: "success", moves })
 })
 
