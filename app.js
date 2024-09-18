@@ -1,11 +1,13 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
+import cors from "cors"
 
 import APIRoutes from "./routes/api/index.js"
 
 let app = express();
 
+app.use(cors())
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

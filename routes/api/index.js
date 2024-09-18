@@ -1,8 +1,12 @@
-import express from "express"
-let router = express.Router()
+import express from "express";
+let router = express.Router();
+
+import gamesRoute from "./games/index.js";
 
 router.get("/", (req, res) => {
-    res.status(200).send({ status: "running" });
+    res.status(200).send({ status: "success", timestamp: Date.now() });
 })
 
-export default router
+router.use("/games", gamesRoute);
+
+export default router;

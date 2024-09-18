@@ -119,3 +119,5 @@ export function createPawnDiagonalKillingMove(piece, x, y, targetPiece) {
 		isPawnDiagonal: true
 	})
 }
+
+export const games = new Map();
