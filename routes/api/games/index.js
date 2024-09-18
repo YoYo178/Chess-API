@@ -20,7 +20,7 @@ router.get("/:gameID", (req, res) => {
     if (!game)
         return res.redirect("/404");
 
-    res.send({ status: "success", gameID: id, positions: game.positions, currentTurn: game.currentTurn })
+    res.send({ status: "success", gameID: id, positions: game.positions, currentTurn: game.currentTurn, check: game.check })
 })
 
 
