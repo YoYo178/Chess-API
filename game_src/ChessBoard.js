@@ -18,11 +18,16 @@ export class ChessBoard {
 			[CHESS_COLOR.BLACK]: []
 		}
 		this.currentTurn = ""
+
 		this.check = false;
 		this.checked = null;
 		this.checkers = [];
+
 		this.checkmate = false;
+		this.checkmated = null;
+
 		this.stalemate = false;
+		this.stalemated = null;
 	}
 
 	async init() {
@@ -120,6 +125,7 @@ export class ChessBoard {
 			this.currentTurn = CHESS_COLOR.WHITE
 
 		this.updateAttackedSquares()
+		this.postMove()
 	}
 
 	kill(piece, newPos, targetPiece) {
@@ -166,7 +172,10 @@ export class ChessBoard {
 			}
 			this.attackedSquares[piece.color][piece.type] = this.attackedSquares[piece.color][piece.type].concat(attackedSquares);
 		}
+	}
 
+	// never meant to be called from outside the class
+	postMove() {
 		if (this.checkers.length === 1) {
 			let king = this.checked;
 			let checker = this.checkers[0]
@@ -199,6 +208,28 @@ export class ChessBoard {
 				}
 			}
 			this.allowedMoves[king.color].push({ x: checker.position.x, y: checker.position.y })
+		}
+
+		if (this.check && this.checkers.length) {
+			let allowedMoves = this.allowedMoves[this.checked.color]
+			let availableMoves = []
+			let movePossible = this.checked.moves.filter(move => !move.isFriendlyPiece);
+
+			for (let piece of Object.values(this.pieces[this.checked.color])) {
+				availableMoves = availableMoves.concat(piece.moves)
+			}
+
+			for (let move of availableMoves) {
+				if (movePossible.length)
+					break;
+
+				movePossible = allowedMoves.filter(e => { e.x === move.x && e.y === move.y })
+			}
+
+			if (!movePossible.length) {
+				this.checkmate = true;
+				this.checkmated = this.checked
+			}
 		}
 	}
 }
