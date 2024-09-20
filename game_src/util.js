@@ -142,3 +142,7 @@ export function encodeMove(moveObj) {
 
 	return move
 }
+
+export function getDirection(start, dest) {
+	return { x: dest.x - start.x, y: dest.y - start.y }
+}

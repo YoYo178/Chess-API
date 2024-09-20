@@ -77,6 +77,15 @@ export class ChessPiece {
 
 				if ((i === -1 && x < 0) || (i === 1 && x > 7)) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					let move = this.board.allowedMoves[this.color].some(e => e.x === x && e.y === y)
+					if (!move)
+						continue
+				}
+
 				// Pawns can kill diagonally
 				let piece = this.board.getPieceOnPosition({ x, y });
 				if (piece && piece.color != this.color) createPawnDiagonalKillingMove(this, x, y, piece)
@@ -101,71 +110,150 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.y == i) continue;
 
-				if (this.board.getPieceOnPosition({ x: curPos.x, y: i })) {
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
+				let blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
+				if (blockingPiece)
 					break;
-				} else createPawnMove(this, curPos.x, i)
+
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					let move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x && e.y === i)
+					if (!move)
+						continue
+				}
+
+				createPawnMove(this, curPos.x, i)
 			}
 		}
 
 		if (this.moveType & CHESS_MOVE_TYPE.STRAIGHT) {
-			// Top
+			// Left
 			for (let i = curPos.x; i >= 0; i--) {
 				// ignore self
 				if (curPos.x == i) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
 
-				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
-						createKillingMove(this, i, curPos.y, blockingPiece)
-					else
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, curPos.y)
-					break;
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === i && e.y === curPos.y)
+					if (!move)
+						continue
+				}
+
+				if (blockingPiece) {
+					if (blockingPiece.color != this.color) {
+						createKillingMove(this, i, curPos.y, blockingPiece)
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
+						createFriendlyMove(this, i, curPos.y)
+						break;
+					}
 				} else createMove(this, i, curPos.y);
 			}
-			// Bottom
+			// Right
 			for (let i = curPos.x; i <= 7; i++) {
 				// ignore self
 				if (curPos.x == i) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
 
-				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
-						createKillingMove(this, i, curPos.y, blockingPiece)
-					else
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, curPos.y)
-					break;
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === i && e.y === curPos.y)
+					if (!move)
+						continue
+				}
+
+				if (blockingPiece) {
+					if (blockingPiece.color != this.color) {
+						createKillingMove(this, i, curPos.y, blockingPiece)
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
+						createFriendlyMove(this, i, curPos.y)
+						break;
+					}
 				} else createMove(this, i, curPos.y);
 			}
-			// Left
+			// Top
 			for (let i = curPos.y; i >= 0; i--) {
 				// ignore self
 				if (curPos.y == i) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
 
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
+						createFriendlyMove(this, i, curPos.y)
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x && e.y === i)
+					if (!move)
+						continue
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
+					if (blockingPiece.color != this.color) {
 						createKillingMove(this, curPos.x, i, blockingPiece)
-					else
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
 						createFriendlyMove(this, curPos.x, i)
-					break;
+						break;
+					}
 				} else createMove(this, curPos.x, i);
 			}
-			// Right
+			// Bottom
 			for (let i = curPos.y; i <= 7; i++) {
 				// ignore self
 				if (curPos.y == i) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
 
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
+						createFriendlyMove(this, i, curPos.y)
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x && e.y === i)
+					if (!move)
+						continue
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
+					if (blockingPiece.color != this.color) {
 						createKillingMove(this, curPos.x, i, blockingPiece)
-					else
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
 						createFriendlyMove(this, curPos.x, i)
-					break;
+						break;
+					}
 				} else createMove(this, curPos.x, i);
 			}
 		}
@@ -176,7 +264,21 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
+						createFriendlyMove(this, i, j)
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === i && e.y === j)
+					if (!move)
+						continue
+				}
 
 				if (blockingPiece) {
 					if (blockingPiece.color != this.color)
@@ -191,7 +293,21 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
+						createFriendlyMove(this, i, j)
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === i && e.y === j)
+					if (!move)
+						continue
+				}
 
 				if (blockingPiece) {
 					if (blockingPiece.color != this.color)
@@ -206,7 +322,21 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
+						createFriendlyMove(this, i, j)
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === i && e.y === j)
+					if (!move)
+						continue
+				}
 
 				if (blockingPiece) {
 					if (blockingPiece.color != this.color)
@@ -221,7 +351,21 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
+				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+					return [];
+
 				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+
+				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+					if (blockingPiece && blockingPiece.color === this.color) {
+						createFriendlyMove(this, i, j)
+						break;
+					}
+
+					let move = this.board.allowedMoves[this.color].some(e => e.x === i && e.y === j)
+					if (!move)
+						continue
+				}
 
 				if (blockingPiece) {
 					if (blockingPiece.color != this.color)
@@ -262,108 +406,193 @@ export class ChessPiece {
 			// top
 			if (curPos.y - 2 >= 0) {
 				if (curPos.x - 1 >= 0) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 1, y: curPos.y - 2 })
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x - 1, curPos.y - 2, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x - 1, curPos.y - 2)
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x - 1 && e.y === curPos.y - 2)
 					}
-					else
-						createMove(this, curPos.x - 1, curPos.y - 2);
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 1, y: curPos.y - 2 })
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x - 1, curPos.y - 2, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x - 1, curPos.y - 2)
+						}
+						else
+							createMove(this, curPos.x - 1, curPos.y - 2);
+					}
 				}
 
 				if (curPos.x + 1 <= 7) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 1, y: curPos.y - 2 })
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x + 1, curPos.y - 2, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x + 1, curPos.y - 2)
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x + 1 && e.y === curPos.y - 2)
 					}
-					else
-						createMove(this, curPos.x + 1, curPos.y - 2);
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 1, y: curPos.y - 2 })
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x + 1, curPos.y - 2, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x + 1, curPos.y - 2)
+						}
+						else
+							createMove(this, curPos.x + 1, curPos.y - 2);
+					}
 				}
 			}
 
 			// bottom
 			if (curPos.y + 2 <= 7) {
 				if (curPos.x - 1 >= 0) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 1, y: curPos.y + 2 });
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x - 1, curPos.y + 2, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x - 1, curPos.y + 2)
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x - 1 && e.y === curPos.y + 2)
 					}
-					else
-						createMove(this, curPos.x - 1, curPos.y + 2);
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 1, y: curPos.y + 2 });
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x - 1, curPos.y + 2, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x - 1, curPos.y + 2)
+						}
+						else
+							createMove(this, curPos.x - 1, curPos.y + 2);
+					}
 				}
 
+
 				if (curPos.x + 1 <= 7) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 1, y: curPos.y + 2 });
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x + 1, curPos.y + 2, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x + 1, curPos.y + 2)
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x + 1 && e.y === curPos.y + 2)
 					}
-					else
-						createMove(this, curPos.x + 1, curPos.y + 2);
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 1, y: curPos.y + 2 });
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x + 1, curPos.y + 2, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x + 1, curPos.y + 2)
+						}
+						else
+							createMove(this, curPos.x + 1, curPos.y + 2);
+					}
 				}
 			}
 
 			// left
 			if (curPos.x - 2 >= 0) {
 				if (curPos.y - 1 >= 0) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 2, y: curPos.y - 1 })
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x - 2, curPos.y - 1, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x - 2, curPos.y - 1)
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x - 2 && e.y === curPos.y - 1)
 					}
-					else
-						createMove(this, curPos.x - 2, curPos.y - 1);
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 2, y: curPos.y - 1 })
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x - 2, curPos.y - 1, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x - 2, curPos.y - 1)
+						}
+						else
+							createMove(this, curPos.x - 2, curPos.y - 1);
+					}
 				}
 
 				if (curPos.y + 1 <= 7) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 2, y: curPos.y + 1 })
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x - 2, curPos.y + 1, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x - 2, curPos.y + 1)
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x - 2 && e.y === curPos.y + 1)
 					}
-					else
-						createMove(this, curPos.x - 2, curPos.y + 1);
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 2, y: curPos.y + 1 })
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x - 2, curPos.y + 1, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x - 2, curPos.y + 1)
+						}
+						else
+							createMove(this, curPos.x - 2, curPos.y + 1);
+					}
 				}
 			}
 
 			// right
 			if (curPos.x + 2 <= 7) {
 				if (curPos.y - 1 >= 0) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 2, y: curPos.y - 1 })
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x + 2, curPos.y - 1, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x + 2, curPos.y - 1)
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x + 2 && e.y === curPos.y - 1)
 					}
-					else
-						createMove(this, curPos.x + 2, curPos.y - 1);
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 2, y: curPos.y - 1 })
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x + 2, curPos.y - 1, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x + 2, curPos.y - 1)
+						}
+						else
+							createMove(this, curPos.x + 2, curPos.y - 1);
+					}
 				}
 
+
 				if (curPos.y + 1 <= 7) {
-					let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 2, y: curPos.y + 1 })
-					if (otherPiece) {
-						if (otherPiece.color != this.color)
-							createKillingMove(this, curPos.x + 2, curPos.y + 1, otherPiece)
-						else
-							createFriendlyMove(this, curPos.x + 2, curPos.y + 1)
+
+					let move = true;
+					if (this.board.check && this.board.checked.color === this.color) {
+						if (!this.board.allowedMoves[this.color].length)
+							return [];
+
+						move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x + 2 && e.y === curPos.y + 1)
 					}
-					else
-						createMove(this, curPos.x + 2, curPos.y + 1);
+
+
+					if (move) {
+						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 2, y: curPos.y + 1 })
+						if (otherPiece) {
+							if (otherPiece.color != this.color)
+								createKillingMove(this, curPos.x + 2, curPos.y + 1, otherPiece)
+							else
+								createFriendlyMove(this, curPos.x + 2, curPos.y + 1)
+						}
+						else
+							createMove(this, curPos.x + 2, curPos.y + 1);
+					}
+
 				}
 			}
 		}

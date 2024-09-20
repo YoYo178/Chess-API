@@ -2,7 +2,7 @@ import express from "express";
 let router = express.Router();
 
 import { ChessBoard } from '../../../game_src/ChessBoard.js';
-import { games, generateGameID } from "../../../game_src/util.js";
+import { games, generateGameID, logicalToVisual } from "../../../game_src/util.js";
 
 router.get("/", (req, res) => {
     let gameID = "";
@@ -15,8 +15,17 @@ router.get("/", (req, res) => {
     game.init();
     games.set(gameID, game);
 
-    let { positions, currentTurn } = game
-    res.send({ gameID, positions, currentTurn });
+    let sendObj = {
+        status: "success",
+        gameID,
+        positions: game.positions,
+        currentTurn: game.currentTurn,
+        check: game.check,
+        checked: game.checked ? logicalToVisual(game.checked.position) : null,
+        checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+    }
+
+    res.send(sendObj);
 })
 
 export default router;

@@ -4,7 +4,7 @@ let router = express.Router();
 import newRouter from "./new.js";
 import movesRouter from "./moves.js"
 
-import { games } from "../../../game_src/util.js";
+import { games, logicalToVisual } from "../../../game_src/util.js";
 
 router.get("/", (req, res) => {
     res.status(200).send({ status: "success", timestamp: Date.now() });
@@ -20,7 +20,17 @@ router.get("/:gameID", (req, res) => {
     if (!game)
         return res.redirect("/404");
 
-    res.send({ status: "success", gameID: id, positions: game.positions, currentTurn: game.currentTurn, check: game.check })
+    let sendObj = {
+        status: "success",
+        gameID: id,
+        positions: game.positions,
+        currentTurn: game.currentTurn,
+        check: game.check,
+        checked: game.checked ? logicalToVisual(game.checked.position) : null,
+        checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+    }
+
+    res.send(sendObj)
 })
 
 

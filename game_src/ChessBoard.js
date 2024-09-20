@@ -1,6 +1,6 @@
 import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK } from "./ChessVariables.js";
 import { ChessPiece } from "./ChessPiece.js";
-import { objIncludes } from "./util.js";
+import { getDirection, objIncludes } from "./util.js";
 
 export class ChessBoard {
 	constructor() {
@@ -13,10 +13,16 @@ export class ChessBoard {
 			[CHESS_COLOR.WHITE]: {},
 			[CHESS_COLOR.BLACK]: {}
 		}
+		this.allowedMoves = {
+			[CHESS_COLOR.WHITE]: [],
+			[CHESS_COLOR.BLACK]: []
+		}
 		this.currentTurn = ""
-		this.check = null;
-		this.checkmate = null;
-		this.stalemate = null;
+		this.check = false;
+		this.checked = null;
+		this.checkers = [];
+		this.checkmate = false;
+		this.stalemate = false;
 	}
 
 	async init() {
@@ -94,8 +100,16 @@ export class ChessBoard {
 			}
 		}
 
-		if (piece.isKing() && this.check)
+		if (this.check) {
 			this.check = false;
+			this.checkers = [];
+			this.checked = null;
+
+			this.allowedMoves = {
+				[CHESS_COLOR.WHITE]: [],
+				[CHESS_COLOR.BLACK]: []
+			}
+		}
 
 		piece.position.x = newPos.x;
 		piece.position.y = newPos.y;
@@ -122,6 +136,8 @@ export class ChessBoard {
 
 		this.pieces[targetPiece.color].splice(targetPieceIndex, 1)
 
+		this.attackedSquares[targetPiece.color][targetPiece.type] = []
+
 		return this.move(piece, newPos)
 	}
 
@@ -142,10 +158,47 @@ export class ChessBoard {
 				value["attackingPiece"] = piece;
 				attackedSquares[index] = value
 
-				if (value["isKillingMove"] && value["killTarget"].isKing())
+				if (value["isKillingMove"] && value["killTarget"].isKing()) {
 					this.check = true;
+					this.checkers.push(piece);
+					this.checked = value["killTarget"]
+				}
 			}
 			this.attackedSquares[piece.color][piece.type] = this.attackedSquares[piece.color][piece.type].concat(attackedSquares);
+		}
+
+		if (this.checkers.length === 1) {
+			let king = this.checked;
+			let checker = this.checkers[0]
+
+			let dir = getDirection(king.position, checker.position)
+
+			if (!checker.isKnight()) {
+				for (
+					let i = king.position.x, j = king.position.y;
+
+					i != checker.position.x || j != checker.position.y;
+
+					king.position.x != checker.position.x
+						? (dir.x > 0 ? i++ : i--)
+						: null,
+					king.position.y != checker.position.y
+						? (dir.y > 0 ? j++ : j--)
+						: null
+				) {
+					// Memory leak
+					if (i >= 10 || j >= 10) {
+						console.warn("[ChessBoard] Memory leak detected in updateAttackedSquares()! ")
+						break;
+					}
+
+					if (i === king.position.x && j === king.position.y)
+						continue;
+
+					this.allowedMoves[king.color].push({ x: i, y: j })
+				}
+			}
+			this.allowedMoves[king.color].push({ x: checker.position.x, y: checker.position.y })
 		}
 	}
 }

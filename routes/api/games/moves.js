@@ -1,7 +1,7 @@
 import express from "express";
 let router = express.Router({ mergeParams: true });
 
-import { encodeMove, games, visualToLogical } from "../../../game_src/util.js";
+import { encodeMove, games, visualToLogical, logicalToVisual } from "../../../game_src/util.js";
 
 router.get("/:pos", (req, res) => {
     let id = req.params.gameID
@@ -28,7 +28,18 @@ router.post("/:pos", (req, res) => {
     req.body.killPos ?
         game.kill(piece, visualToLogical(req.body.moveTo), game.getPieceOnPosition(visualToLogical(req.body.killPos))) :
         game.move(piece, visualToLogical(req.body.moveTo))
-    res.send({ status: "success", positions: game.positions })
+
+    let sendObj = {
+        status: "success",
+        gameID: id,
+        positions: game.positions,
+        currentTurn: game.currentTurn,
+        check: game.check,
+        checked: game.checked ? logicalToVisual(game.checked.position) : null,
+        checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+    }
+
+    res.send(sendObj)
 })
 
 export default router;
