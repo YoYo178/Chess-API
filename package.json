@@ -1,8 +1,18 @@
 {
   "name": "chess-api",
-  "version": "0.0.0",
-  "private": true,
+  "description": "A RESTful Chess API made using Node.JS.",
+  "version": "1.0",
+  "author": "-_YoYo178_-",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YoYo178/Chess-API.git"
+  },
+  "homepage": "https://github.com/YoYo178/Chess-API",
+  "bugs": "https://github.com/YoYo178/Chess-API/issues",
+  "keywords": ["chess", "chess-api", "api", "rest-api", "restful-api", "game"],
+  "main": "./bin/www",
   "scripts": {
     "start": "node ./bin/www"
   },
