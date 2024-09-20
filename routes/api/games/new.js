@@ -11,21 +11,26 @@ router.get("/", (req, res) => {
     }
     while (games.get(gameID));
 
-    let game = new ChessBoard();
-    game.init();
-    games.set(gameID, game);
+    try {
+        let game = new ChessBoard();
+        game.init();
+        games.set(gameID, game);
 
-    let sendObj = {
-        status: "success",
-        gameID,
-        positions: game.positions,
-        currentTurn: game.currentTurn,
-        check: game.check,
-        checked: game.checked ? logicalToVisual(game.checked.position) : null,
-        checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+        let sendObj = {
+            status: "success",
+            gameID,
+            positions: game.positions,
+            currentTurn: game.currentTurn,
+            check: game.check,
+            checked: game.checked ? logicalToVisual(game.checked.position) : null,
+            checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+        }
+
+        res.send(sendObj);
+    } catch (error) {
+        res.status(500).send({ status: "failed", message: "An error occured while generating a new game." })
+        return console.log(error)
     }
-
-    res.send(sendObj);
 })
 
 export default router;

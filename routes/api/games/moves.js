@@ -12,8 +12,17 @@ router.get("/:pos", (req, res) => {
 
     let pos = req.params.pos
     let piece = game.getPieceOnPosition(visualToLogical(pos))
-    let moves = piece.getMovablePositions().map(encodeMove)
-    res.send({ status: "success", moves })
+
+    if (!piece)
+        return res.status(404).send({ status: "failed", message: "No piece exists on the specified position." });
+
+    try {
+        let moves = piece.getMovablePositions().map(encodeMove)
+        res.send({ status: "success", moves })
+    } catch (error) {
+        res.status(501).send({ status: "failed", message: "An error occured while generating moves." })
+        return console.error(error)
+    }
 })
 
 router.post("/:pos", (req, res) => {
@@ -25,21 +34,30 @@ router.post("/:pos", (req, res) => {
 
     let pos = req.params.pos
     let piece = game.getPieceOnPosition(visualToLogical(pos))
-    req.body.killPos ?
-        game.kill(piece, visualToLogical(req.body.moveTo), game.getPieceOnPosition(visualToLogical(req.body.killPos))) :
-        game.move(piece, visualToLogical(req.body.moveTo))
 
-    let sendObj = {
-        status: "success",
-        gameID: id,
-        positions: game.positions,
-        currentTurn: game.currentTurn,
-        check: game.check,
-        checked: game.checked ? logicalToVisual(game.checked.position) : null,
-        checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+    if (!piece)
+        return res.status(404).send({ status: "failed", message: "No piece exists on the specified position." });
+
+    try {
+        req.body.killPos ?
+            game.kill(piece, visualToLogical(req.body.moveTo), game.getPieceOnPosition(visualToLogical(req.body.killPos))) :
+            game.move(piece, visualToLogical(req.body.moveTo))
+
+        let sendObj = {
+            status: "success",
+            gameID: id,
+            positions: game.positions,
+            currentTurn: game.currentTurn,
+            check: game.check,
+            checked: game.checked ? logicalToVisual(game.checked.position) : null,
+            checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+        }
+
+        res.send(sendObj)
+    } catch (error) {
+        res.status(501).send({ status: "failed", message: "An error occured while trying to move the specified piece." })
+        return console.error(error)
     }
-
-    res.send(sendObj)
 })
 
 export default router;
