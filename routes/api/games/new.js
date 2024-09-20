@@ -29,7 +29,7 @@ router.get("/", (req, res) => {
         res.send(sendObj);
     } catch (error) {
         res.status(500).send({ status: "failed", message: "An error occured while generating a new game." })
-        return console.log(error)
+        return console.error(error)
     }
 })
 
