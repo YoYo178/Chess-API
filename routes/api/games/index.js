@@ -27,7 +27,8 @@ router.get("/:gameID", (req, res) => {
         currentTurn: game.currentTurn,
         check: game.check,
         checked: game.checked ? logicalToVisual(game.checked.position) : null,
-        checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers
+        checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers,
+        checkmate: game.checkmate
     }
 
     res.send(sendObj)
