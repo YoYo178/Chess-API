@@ -281,11 +281,14 @@ export class ChessPiece {
 				}
 
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
+					if (blockingPiece.color != this.color) {
 						createKillingMove(this, i, j, blockingPiece)
-					else
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
 						createFriendlyMove(this, i, j)
-					break;
+						break;
+					}
 				} else createMove(this, i, j);
 			}
 			// Top right
@@ -310,11 +313,14 @@ export class ChessPiece {
 				}
 
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
+					if (blockingPiece.color != this.color) {
 						createKillingMove(this, i, j, blockingPiece)
-					else
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
 						createFriendlyMove(this, i, j)
-					break;
+						break;
+					}
 				} else createMove(this, i, j);
 			}
 			// Bottom left
@@ -339,11 +345,14 @@ export class ChessPiece {
 				}
 
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
+					if (blockingPiece.color != this.color) {
 						createKillingMove(this, i, j, blockingPiece)
-					else
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
 						createFriendlyMove(this, i, j)
-					break;
+						break;
+					}
 				} else createMove(this, i, j);
 			}
 			// Bottom right
@@ -368,11 +377,14 @@ export class ChessPiece {
 				}
 
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color)
+					if (blockingPiece.color != this.color) {
 						createKillingMove(this, i, j, blockingPiece)
-					else
+						if (!blockingPiece.isKing()) break;
+					}
+					else {
 						createFriendlyMove(this, i, j)
-					break;
+						break;
+					}
 				} else createMove(this, i, j);
 			}
 		}
