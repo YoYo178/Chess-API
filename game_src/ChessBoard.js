@@ -216,7 +216,7 @@ export class ChessBoard {
 			let movePossible = this.checked.moves.filter(move => !move.isFriendlyPiece);
 
 			for (let piece of Object.values(this.pieces[this.checked.color])) {
-				availableMoves = availableMoves.concat(piece.moves)
+				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
 
 			for (let move of availableMoves) {
@@ -230,6 +230,14 @@ export class ChessBoard {
 				this.checkmate = true;
 				this.checkmated = this.checked
 			}
+		} else {
+			let availableMoves = []
+
+			for (let piece of Object.values(this.pieces[this.currentTurn])) {
+				availableMoves = availableMoves.concat(piece.getMovablePositions())
+			}
+
+			availableMoves = availableMoves.filter(move => !move.isFriendlyPiece && (move.isPawnDiagonal ? move.isKillingMove : true))
 		}
 	}
 }

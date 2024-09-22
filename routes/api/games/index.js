@@ -7,7 +7,7 @@ import movesRouter from "./moves.js"
 import { games, logicalToVisual } from "../../../game_src/util.js";
 
 router.get("/", (req, res) => {
-    res.status(200).send({ status: "success", timestamp: Date.now() });
+    res.status(200).send({ status: "success", timestamp: Date.now(), games: [...games.keys()] });
 })
 
 router.use("/new", newRouter);
