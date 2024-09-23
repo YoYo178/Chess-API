@@ -28,6 +28,8 @@ export class ChessBoard {
 
 		this.stalemate = false;
 		this.stalemated = null;
+
+		this.pinnedPieces = []
 	}
 
 	async init() {
@@ -123,6 +125,23 @@ export class ChessBoard {
 			this.currentTurn = CHESS_COLOR.BLACK
 		else
 			this.currentTurn = CHESS_COLOR.WHITE
+
+		// do we need to unpin any pinned piece?
+		this.pinnedPieces.forEach(pinPiece => {
+			let pinnedColorKing = pinPiece.getKing()
+
+			// THE THIRD CONDITION IS NOT POSSIBLE IN A REAL GAME
+			if (
+				pinnedColorKing.type === piece.type ||
+				pinPiece.pinner.type === piece.type ||
+				pinPiece.type === piece.type
+			) {
+				pinPiece.isPinned = false;
+				pinPiece.pinner = null;
+
+				this.pinnedPieces.filter((pin, index) => { if (pin.type === pinPiece.type) this.pinnedPieces.splice(index, 1) })
+			}
+		})
 
 		this.updateAttackedSquares()
 		this.postMove()

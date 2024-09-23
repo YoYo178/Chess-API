@@ -9,6 +9,9 @@ export class ChessPiece {
 		this.position = { x: pos.x, y: pos.y };
 		this.moves = []
 
+		this.isPinned = false;
+		this.pinner = null
+
 		if (this.isPawn()) {
 			this.pawnInitialMove = true;
 			this.canEnPassant = false;
@@ -62,9 +65,19 @@ export class ChessPiece {
 		return [CHESS_PIECE_BLACK.PAWN, CHESS_PIECE_WHITE.PAWN].includes(this.type);
 	}
 
+	getEnemyColor() {
+		return this.color === CHESS_COLOR.BLACK ? CHESS_COLOR.WHITE : CHESS_COLOR.BLACK;
+	}
+
+	getKing() {
+		return this.board.pieces[this.color][this.color === CHESS_COLOR.BLACK ? CHESS_PIECE_BLACK.KING : CHESS_PIECE_WHITE.KING]
+	}
+
 	getMovablePositions() {
 		this.moves = [];
 		let curPos = this.position;
+		let blockingPiece = null;
+		let isBlocked = false;
 
 		if (this.moveType & CHESS_MOVE_TYPE.PAWN) {
 			let y = this.color === CHESS_COLOR.BLACK ? curPos.y + 1 : curPos.y - 1;
@@ -136,7 +149,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -149,17 +162,40 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					let king = this.board.pieces[this.color].filter(piece => piece.isKing())[0]
+					let attacker = this.pinner;
+
+					if (
+						(king.position.x === attacker.position.x && king.position.x != i) ||
+						(king.position.y === attacker.position.y && king.position.y != curPos.y)
+					) continue;
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, i, curPos.y, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, i, curPos.y)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, i, curPos.y, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, i, curPos.y)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, i, curPos.y);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
+
 			// Right
 			for (let i = curPos.x; i <= 7; i++) {
 				// ignore self
@@ -168,7 +204,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -180,18 +216,40 @@ export class ChessPiece {
 					if (!move)
 						continue
 				}
+				if (this.isPinned) {
+					let king = this.board.pieces[this.color].filter(piece => piece.isKing())[0]
+					let attacker = this.pinner;
+
+					if (
+						(king.position.x === attacker.position.x && king.position.x != i) ||
+						(king.position.y === attacker.position.y && king.position.y != curPos.y)
+					) continue;
+				}
 
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, i, curPos.y, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, i, curPos.y)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, i, curPos.y, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, i, curPos.y)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, i, curPos.y);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
+
 			// Top
 			for (let i = curPos.y; i >= 0; i--) {
 				// ignore self
@@ -200,7 +258,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -213,17 +271,40 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					let king = this.board.pieces[this.color].filter(piece => piece.isKing())[0]
+					let attacker = this.pinner;
+
+					if (
+						(king.position.x === attacker.position.x && king.position.x != curPos.x) ||
+						(king.position.y === attacker.position.y && king.position.y != i)
+					) continue;
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, curPos.x, i, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, curPos.x, i)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, curPos.x, i, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, curPos.x, i)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, curPos.x, i);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
+
 			// Bottom
 			for (let i = curPos.y; i <= 7; i++) {
 				// ignore self
@@ -232,7 +313,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -245,17 +326,39 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					let king = this.board.pieces[this.color].filter(piece => piece.isKing())[0]
+					let attacker = this.pinner;
+
+					if (
+						(king.position.x === attacker.position.x && king.position.x != curPos.x) ||
+						(king.position.y === attacker.position.y && king.position.y != i)
+					) continue;
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, curPos.x, i, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, curPos.x, i)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, curPos.x, i, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, curPos.x, i)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, curPos.x, i);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
 		}
 
 		if (this.moveType & CHESS_MOVE_TYPE.DIAGONAL) {
@@ -267,7 +370,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -280,17 +383,34 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					continue
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, i, j, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, i, j)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, i, j, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, i, j)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: i, y: j })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, i, j);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
+
 			// Top right
 			for (let i = curPos.x, j = curPos.y; i <= 7 && j >= 0; i++, j--) {
 				// ignore self
@@ -299,7 +419,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -312,17 +432,34 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					continue
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, i, j, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, i, j)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, i, j, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, i, j)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: i, y: j })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, i, j);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
+
 			// Bottom left
 			for (let i = curPos.x, j = curPos.y; i >= 0 && j <= 7; i--, j++) {
 				// ignore self
@@ -331,7 +468,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -344,17 +481,34 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					continue
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, i, j, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, i, j)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, i, j, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, i, j)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: i, y: j })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, i, j);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
+
 			// Bottom right
 			for (let i = curPos.x, j = curPos.y; i <= 7 && j <= 7; i++, j++) {
 				// ignore self
@@ -363,7 +517,7 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				let blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
+				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
@@ -376,17 +530,33 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					continue
+				}
+
 				if (blockingPiece) {
-					if (blockingPiece.color != this.color) {
-						createKillingMove(this, i, j, blockingPiece)
-						if (!blockingPiece.isKing()) break;
-					}
-					else {
-						createFriendlyMove(this, i, j)
-						break;
+					if (!isBlocked) {
+						if (blockingPiece.color != this.color) {
+							createKillingMove(this, i, j, blockingPiece)
+							if (!blockingPiece.isKing()) isBlocked = true;
+						}
+						else {
+							createFriendlyMove(this, i, j)
+							isBlocked = true;
+						}
+					} else {
+						let beyondBlockedPiece = this.board.getPieceOnPosition({ x: i, y: j })
+						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
+							blockingPiece.isPinned = true
+							blockingPiece.pinner = this;
+							this.board.pinnedPieces.push(blockingPiece)
+						}
 					}
 				} else createMove(this, i, j);
 			}
+
+			isBlocked = false;
+			blockingPiece = null;
 		}
 
 		if (this.moveType & CHESS_MOVE_TYPE.KING) {
