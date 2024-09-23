@@ -94,10 +94,10 @@ export class ChessBoard {
 			if (Math.abs(newPos.y - piece.position.y) === 2) {
 				let otherPiece = null;
 
-				if (newPos.x - 1 >= 0)
+				if (!otherPiece && newPos.x - 1 >= 0)
 					otherPiece = this.getPieceOnPosition({ x: newPos.x - 1, y: newPos.y })
 
-				if (newPos.x + 1 < 8)
+				if (!otherPiece && newPos.x + 1 < 8)
 					otherPiece = this.getPieceOnPosition({ x: newPos.x + 1, y: newPos.y })
 
 				if (otherPiece && otherPiece.color != piece.color)
