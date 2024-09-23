@@ -146,3 +146,43 @@ export function encodeMove(moveObj) {
 export function getDirection(start, dest) {
 	return { x: dest.x - start.x, y: dest.y - start.y }
 }
+
+export function getLowerDiagonalBounds(pos, mode) {
+	let retObj = { x: pos.x, y: pos.y }
+
+	switch (mode) {
+		case "acw": {
+			while (retObj.x > 0 && retObj.y > 0) {
+				retObj.x--;
+				retObj.y--;
+			}
+			break;
+		}
+
+		case "cw": {
+			while (retObj.x < 7 && retObj.y > 0) {
+				retObj.x++;
+				retObj.y--;
+			}
+			break;
+		}
+	}
+
+	return retObj
+}
+
+export function checkSameDiagonal() {
+	if(!arguments.length)
+		return;
+
+	let arr = Array.from(arguments)
+	let res = []
+
+	let acwArr = arr.map(arg => getLowerDiagonalBounds(arg, "acw"))
+	let cwArr = arr.map(arg => getLowerDiagonalBounds(arg, "cw"))
+
+	res.push(acwArr.every(pos => pos.x === acwArr[0].x && pos.y === acwArr[0].y))
+	res.push(cwArr.every(pos => pos.x === cwArr[0].x && pos.y === cwArr[0].y))
+
+	return res[0] || res[1]
+}

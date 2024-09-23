@@ -130,16 +130,20 @@ export class ChessBoard {
 		this.pinnedPieces.forEach(pinPiece => {
 			let pinnedColorKing = pinPiece.getKing()
 
-			// THE THIRD CONDITION IS NOT POSSIBLE IN A REAL GAME
+			// comparing by types is unreliable for any piece except king and queen, since other pieces can be multiple
+			// so we compare by their positions instead
 			if (
 				pinnedColorKing.type === piece.type ||
-				pinPiece.pinner.type === piece.type ||
-				pinPiece.type === piece.type
+				pinPiece.pinner.position.x === piece.position.x && pinPiece.pinner.position.y === piece.position.y ||
+				pinPiece.position.x === piece.position.x && pinPiece.position.y === piece.position.y
 			) {
 				pinPiece.isPinned = false;
 				pinPiece.pinner = null;
 
-				this.pinnedPieces.filter((pin, index) => { if (pin.type === pinPiece.type) this.pinnedPieces.splice(index, 1) })
+				this.pinnedPieces.forEach((pin, index) => {
+					if (pin.position.x === pinPiece.position.x && pin.position.y === pinPiece.position.y)
+						this.pinnedPieces.splice(index, 1)
+				})
 			}
 		})
 

@@ -1,5 +1,5 @@
 import { CHESS_PIECE_BLACK, CHESS_PIECE_WHITE, CHESS_MOVE_TYPE, CHESS_COLOR } from "./ChessVariables.js";
-import { createEnPassantMove, createFriendlyMove, createKillingMove, createMove, createPawnDiagonalMove, createPawnMove, createPawnDiagonalKillingMove } from "./util.js";
+import { createEnPassantMove, createFriendlyMove, createKillingMove, createMove, createPawnDiagonalMove, createPawnMove, createPawnDiagonalKillingMove, checkSameDiagonal } from "./util.js";
 
 export class ChessPiece {
 	constructor(board, color, type, pos) {
@@ -70,7 +70,7 @@ export class ChessPiece {
 	}
 
 	getKing() {
-		return this.board.pieces[this.color][this.color === CHESS_COLOR.BLACK ? CHESS_PIECE_BLACK.KING : CHESS_PIECE_WHITE.KING]
+		return this.board.pieces[this.color].filter(piece => piece.type === (this.color === CHESS_COLOR.BLACK ? CHESS_PIECE_BLACK.KING : CHESS_PIECE_WHITE.KING))[0]
 	}
 
 	getMovablePositions() {
@@ -96,6 +96,11 @@ export class ChessPiece {
 				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
 					let move = this.board.allowedMoves[this.color].some(e => e.x === x && e.y === y)
 					if (!move)
+						continue
+				}
+
+				if (this.isPinned) {
+					if (!checkSameDiagonal(this.pinner.position, this.position, this.getKing().position, { x, y }))
 						continue
 				}
 
@@ -136,6 +141,16 @@ export class ChessPiece {
 						continue
 				}
 
+				if (this.isPinned) {
+					let king = this.board.pieces[this.color].filter(piece => piece.isKing())[0]
+					let attacker = this.pinner;
+
+					if (
+						(king.position.x != attacker.position.x || king.position.x != this.position.x || king.position.x != curPos.x) &&
+						(king.position.y != attacker.position.y || king.position.y != this.position.y || king.position.y != i)
+					) continue;
+				}
+
 				createPawnMove(this, curPos.x, i)
 			}
 		}
@@ -167,8 +182,8 @@ export class ChessPiece {
 					let attacker = this.pinner;
 
 					if (
-						(king.position.x === attacker.position.x && king.position.x != i) ||
-						(king.position.y === attacker.position.y && king.position.y != curPos.y)
+						(king.position.x != attacker.position.x || king.position.x != this.position.x || king.position.x != i) &&
+						(king.position.y != attacker.position.y || king.position.y != this.position.y || king.position.y != curPos.y)
 					) continue;
 				}
 
@@ -187,7 +202,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, i, curPos.y);
@@ -221,8 +237,8 @@ export class ChessPiece {
 					let attacker = this.pinner;
 
 					if (
-						(king.position.x === attacker.position.x && king.position.x != i) ||
-						(king.position.y === attacker.position.y && king.position.y != curPos.y)
+						(king.position.x != attacker.position.x || king.position.x != this.position.x || king.position.x != i) &&
+						(king.position.y != attacker.position.y || king.position.y != this.position.y || king.position.y != curPos.y)
 					) continue;
 				}
 
@@ -241,7 +257,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, i, curPos.y);
@@ -276,8 +293,8 @@ export class ChessPiece {
 					let attacker = this.pinner;
 
 					if (
-						(king.position.x === attacker.position.x && king.position.x != curPos.x) ||
-						(king.position.y === attacker.position.y && king.position.y != i)
+						(king.position.x != attacker.position.x || king.position.x != this.position.x || king.position.x != curPos.x) &&
+						(king.position.y != attacker.position.y || king.position.y != this.position.y || king.position.y != i)
 					) continue;
 				}
 
@@ -296,7 +313,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, curPos.x, i);
@@ -331,8 +349,8 @@ export class ChessPiece {
 					let attacker = this.pinner;
 
 					if (
-						(king.position.x === attacker.position.x && king.position.x != curPos.x) ||
-						(king.position.y === attacker.position.y && king.position.y != i)
+						(king.position.x != attacker.position.x || king.position.x != this.position.x || king.position.x != curPos.x) &&
+						(king.position.y != attacker.position.y || king.position.y != this.position.y || king.position.y != i)
 					) continue;
 				}
 
@@ -351,7 +369,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, curPos.x, i);
@@ -384,7 +403,8 @@ export class ChessPiece {
 				}
 
 				if (this.isPinned) {
-					continue
+					if (!checkSameDiagonal(this.pinner.position, this.position, this.getKing().position, { x: i, y: j }))
+						continue
 				}
 
 				if (blockingPiece) {
@@ -402,7 +422,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, i, j);
@@ -433,7 +454,8 @@ export class ChessPiece {
 				}
 
 				if (this.isPinned) {
-					continue
+					if (!checkSameDiagonal(this.pinner.position, this.position, this.getKing().position, { x: i, y: j }))
+						continue
 				}
 
 				if (blockingPiece) {
@@ -451,7 +473,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, i, j);
@@ -482,7 +505,8 @@ export class ChessPiece {
 				}
 
 				if (this.isPinned) {
-					continue
+					if (!checkSameDiagonal(this.pinner.position, this.position, this.getKing().position, { x: i, y: j }))
+						continue
 				}
 
 				if (blockingPiece) {
@@ -500,7 +524,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, i, j);
@@ -531,7 +556,8 @@ export class ChessPiece {
 				}
 
 				if (this.isPinned) {
-					continue
+					if (!checkSameDiagonal(this.pinner.position, this.position, this.getKing().position, { x: i, y: j }))
+						continue
 				}
 
 				if (blockingPiece) {
@@ -549,7 +575,8 @@ export class ChessPiece {
 						if (beyondBlockedPiece && beyondBlockedPiece.isKing() && beyondBlockedPiece.color != this.color) {
 							blockingPiece.isPinned = true
 							blockingPiece.pinner = this;
-							this.board.pinnedPieces.push(blockingPiece)
+							if (!this.board.pinnedPieces.filter(piece => piece.x === blockingPiece.x && piece.y === blockingPiece.y).length)
+								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
 				} else createMove(this, i, j);
