@@ -16,12 +16,12 @@ app.use(cookieParser());
 app.use("/api", APIRoutes)
 
 app.get("/404", (req, res) => {
-  res.status(404).send("NOT FOUND")
+	res.status(404).send("NOT FOUND")
 })
 
 // No matching routes were found, redirect to /404
 app.use((req, res, next) => {
-  res.redirect("/404")
+	res.redirect("/404")
 })
 
 export default app;

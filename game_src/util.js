@@ -34,11 +34,14 @@ export function createMove(piece, x, y) {
 		x,
 		y,
 		killTarget: null,
+		castleTarget: null,
 		isKillingMove: false,
 		isEnPassant: false,
 		isFriendlyPiece: false,
 		isAttackableMove: true,
-		isPawnDiagonal: false
+		isPawnDiagonal: false,
+		isPromotingMove: false,
+		isCastlingMove: false
 	})
 }
 
@@ -47,11 +50,30 @@ export function createKillingMove(piece, x, y, targetPiece) {
 		x,
 		y,
 		killTarget: targetPiece,
+		castleTarget: null,
 		isKillingMove: true,
 		isEnPassant: false,
 		isFriendlyPiece: false,
 		isAttackableMove: true,
-		isPawnDiagonal: false
+		isPawnDiagonal: false,
+		isPromotingMove: false,
+		isCastlingMove: false
+	})
+}
+
+export function createCastlingMove(piece, x, y, targetPiece) {
+	piece.moves.push({
+		x,
+		y,
+		killTarget: null,
+		castleTarget: targetPiece,
+		isKillingMove: false,
+		isEnPassant: false,
+		isFriendlyPiece: false,
+		isAttackableMove: false,
+		isPawnDiagonal: false,
+		isPromotingMove: false,
+		isCastlingMove: true
 	})
 }
 
@@ -60,11 +82,14 @@ export function createEnPassantMove(piece, x, y, targetPiece) {
 		x,
 		y,
 		killTarget: targetPiece,
+		castleTarget: null,
 		isKillingMove: true,
 		isEnPassant: true,
 		isFriendlyPiece: false,
 		isAttackableMove: true,
-		isPawnDiagonal: false
+		isPawnDiagonal: false,
+		isPromotingMove: false,
+		isCastlingMove: false
 	})
 }
 
@@ -73,11 +98,14 @@ export function createFriendlyMove(piece, x, y) {
 		x,
 		y,
 		killTarget: null,
+		castleTarget: null,
 		isKillingMove: false,
 		isEnPassant: false,
 		isFriendlyPiece: true,
 		isAttackableMove: true,
-		isPawnDiagonal: false
+		isPawnDiagonal: false,
+		isPromotingMove: false,
+		isCastlingMove: false
 	})
 }
 
@@ -86,11 +114,30 @@ export function createPawnMove(piece, x, y) {
 		x,
 		y,
 		killTarget: null,
+		castleTarget: null,
 		isKillingMove: false,
 		isEnPassant: false,
 		isFriendlyPiece: false,
 		isAttackableMove: false,
-		isPawnDiagonal: false
+		isPawnDiagonal: false,
+		isPromotingMove: false,
+		isCastlingMove: false
+	})
+}
+
+export function createPawnPromotingMove(piece, x, y) {
+	piece.moves.push({
+		x,
+		y,
+		killTarget: null,
+		castleTarget: null,
+		isKillingMove: false,
+		isEnPassant: false,
+		isFriendlyPiece: false,
+		isAttackableMove: false,
+		isPawnDiagonal: false,
+		isPromotingMove: true,
+		isCastlingMove: false
 	})
 }
 
@@ -99,11 +146,14 @@ export function createPawnDiagonalMove(piece, x, y) {
 		x,
 		y,
 		killTarget: null,
+		castleTarget: null,
 		isKillingMove: false,
 		isEnPassant: false,
 		isFriendlyPiece: false,
 		isAttackableMove: true,
-		isPawnDiagonal: true
+		isPawnDiagonal: true,
+		isPromotingMove: false,
+		isCastlingMove: false
 	})
 }
 
@@ -112,11 +162,14 @@ export function createPawnDiagonalKillingMove(piece, x, y, targetPiece) {
 		x,
 		y,
 		killTarget: targetPiece,
+		castleTarget: null,
 		isKillingMove: true,
 		isEnPassant: false,
 		isFriendlyPiece: false,
 		isAttackableMove: true,
-		isPawnDiagonal: true
+		isPawnDiagonal: true,
+		isPromotingMove: false,
+		isCastlingMove: false
 	})
 }
 
@@ -125,6 +178,10 @@ export const games = new Map();
 export function encodeMove(moveObj) {
 	let move = logicalToVisual(moveObj)
 	move += ":"
+
+	if (moveObj.isPromotingMove)
+		move += "*"
+
 	if (moveObj.isPawnDiagonal)
 		move += "/"
 
@@ -139,6 +196,9 @@ export function encodeMove(moveObj) {
 
 	if (moveObj.isKillingMove)
 		move += "!" + (moveObj.killTarget ? logicalToVisual(moveObj.killTarget.position) : "")
+
+	if (moveObj.isCastlingMove)
+		move += "$" + (moveObj.castleTarget ? logicalToVisual(moveObj.castleTarget.position) : "")
 
 	return move
 }
@@ -172,7 +232,7 @@ export function getLowerDiagonalBounds(pos, mode) {
 }
 
 export function checkSameDiagonal() {
-	if(!arguments.length)
+	if (!arguments.length)
 		return;
 
 	let arr = Array.from(arguments)

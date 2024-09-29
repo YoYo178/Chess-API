@@ -19,15 +19,11 @@ export class ChessBoard {
 		}
 		this.currentTurn = ""
 
-		this.check = false;
-		this.checked = null;
+		this.check = null;
 		this.checkers = [];
 
 		this.checkmate = false;
-		this.checkmated = null;
-
 		this.stalemate = false;
-		this.stalemated = null;
 
 		this.pinnedPieces = []
 	}
@@ -108,9 +104,8 @@ export class ChessBoard {
 		}
 
 		if (this.check) {
-			this.check = false;
+			this.check = null;
 			this.checkers = [];
-			this.checked = null;
 
 			this.allowedMoves = {
 				[CHESS_COLOR.WHITE]: [],
@@ -146,6 +141,9 @@ export class ChessBoard {
 				})
 			}
 		})
+
+		if (!piece.hasMoved)
+			piece.hasMoved = true;
 
 		this.updateAttackedSquares()
 		this.postMove()
@@ -188,9 +186,8 @@ export class ChessBoard {
 				attackedSquares[index] = value
 
 				if (value["isKillingMove"] && value["killTarget"].isKing()) {
-					this.check = true;
+					this.check = value["killTarget"];
 					this.checkers.push(piece);
-					this.checked = value["killTarget"]
 				}
 			}
 			this.attackedSquares[piece.color][piece.type] = this.attackedSquares[piece.color][piece.type].concat(attackedSquares);
@@ -200,7 +197,7 @@ export class ChessBoard {
 	// never meant to be called from outside the class
 	postMove() {
 		if (this.checkers.length === 1) {
-			let king = this.checked;
+			let king = this.check;
 			let checker = this.checkers[0]
 
 			let dir = getDirection(king.position, checker.position)
@@ -234,11 +231,11 @@ export class ChessBoard {
 		}
 
 		if (this.check && this.checkers.length) {
-			let allowedMoves = this.allowedMoves[this.checked.color]
+			let allowedMoves = this.allowedMoves[this.check.color]
 			let availableMoves = []
-			let movePossible = this.checked.moves.filter(move => !move.isFriendlyPiece);
+			let movePossible = this.check.moves.filter(move => !move.isFriendlyPiece);
 
-			for (let piece of Object.values(this.pieces[this.checked.color])) {
+			for (let piece of Object.values(this.pieces[this.check.color])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
 
@@ -250,8 +247,7 @@ export class ChessBoard {
 			}
 
 			if (!movePossible.length) {
-				this.checkmate = true;
-				this.checkmated = this.checked
+				this.checkmate = true
 			}
 		} else {
 			let availableMoves = []
@@ -259,8 +255,10 @@ export class ChessBoard {
 			for (let piece of Object.values(this.pieces[this.currentTurn])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
-
 			availableMoves = availableMoves.filter(move => !move.isFriendlyPiece && (move.isPawnDiagonal ? move.isKillingMove : true))
+
+			if (!availableMoves.length)
+				this.stalemate = true
 		}
 	}
 }

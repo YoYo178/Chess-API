@@ -1,5 +1,5 @@
 import { CHESS_PIECE_BLACK, CHESS_PIECE_WHITE, CHESS_MOVE_TYPE, CHESS_COLOR } from "./ChessVariables.js";
-import { createEnPassantMove, createFriendlyMove, createKillingMove, createMove, createPawnDiagonalMove, createPawnMove, createPawnDiagonalKillingMove, checkSameDiagonal } from "./util.js";
+import { createEnPassantMove, createFriendlyMove, createKillingMove, createMove, createPawnDiagonalMove, createPawnMove, createPawnDiagonalKillingMove, checkSameDiagonal, createPawnPromotingMove, createCastlingMove } from "./util.js";
 
 export class ChessPiece {
 	constructor(board, color, type, pos) {
@@ -15,6 +15,10 @@ export class ChessPiece {
 		if (this.isPawn()) {
 			this.pawnInitialMove = true;
 			this.canEnPassant = false;
+		}
+
+		if (this.isRook() || this.isKing()) {
+			this.hasMoved = false;
 		}
 
 		this.moveType = CHESS_MOVE_TYPE.DEFAULT;
@@ -73,6 +77,33 @@ export class ChessPiece {
 		return this.board.pieces[this.color].filter(piece => piece.type === (this.color === CHESS_COLOR.BLACK ? CHESS_PIECE_BLACK.KING : CHESS_PIECE_WHITE.KING))[0]
 	}
 
+	promote(newPiece) {
+		if (!this.isPawn())
+			return;
+
+		delete this["pawnInitialMove"];
+		delete this["canEnPassant"];
+
+		this.type = newPiece;
+		this.setupMoveType();
+		this.getMovablePositions()
+	}
+
+	castle(targetRook) {
+		if (!this.isKing())
+			return;
+
+		if (targetRook.position.x < this.position.x) {
+			// queenside castling
+			this.board.move(this, { x: this.position.x - 2, y: this.position.y })
+			this.board.move(targetRook, { x: this.position.x + 1, y: this.position.y })
+		} else {
+			// kingside castling
+			this.board.move(this, { x: this.position.x + 2, y: this.position.y })
+			this.board.move(targetRook, { x: this.position.x - 1, y: this.position.y })
+		}
+	}
+
 	getMovablePositions() {
 		this.moves = [];
 		let curPos = this.position;
@@ -90,10 +121,10 @@ export class ChessPiece {
 
 				if ((i === -1 && x < 0) || (i === 1 && x > 7)) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					let move = this.board.allowedMoves[this.color].some(e => e.x === x && e.y === y)
 					if (!move)
 						continue
@@ -128,14 +159,14 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.y == i) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				let blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
 				if (blockingPiece)
 					break;
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					let move = this.board.allowedMoves[this.color].some(e => e.x === curPos.x && e.y === i)
 					if (!move)
 						continue
@@ -151,7 +182,10 @@ export class ChessPiece {
 					) continue;
 				}
 
-				createPawnMove(this, curPos.x, i)
+				if (i === 0 || 8 - i === 0)
+					createPawnPromotingMove(this, curPos.x, i)
+				else
+					createPawnMove(this, curPos.x, i)
 			}
 		}
 
@@ -161,12 +195,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, curPos.y)
 						break;
@@ -217,12 +251,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, curPos.y)
 						break;
@@ -272,12 +306,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.y == i) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, curPos.y)
 						break;
@@ -328,12 +362,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.y == i) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: curPos.x, y: i })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, curPos.y)
 						break;
@@ -386,12 +420,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, j)
 						break;
@@ -437,12 +471,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, j)
 						break;
@@ -488,12 +522,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, j)
 						break;
@@ -539,12 +573,12 @@ export class ChessPiece {
 				// ignore self
 				if (curPos.x == i && curPos.y == j) continue;
 
-				if (this.board.check && this.board.checked.color === this.color && !this.board.allowedMoves[this.color].length)
+				if (this.board.check && this.board.check.color === this.color && !this.board.allowedMoves[this.color].length)
 					return [];
 
 				if (!blockingPiece) blockingPiece = this.board.getPieceOnPosition({ x: i, y: j })
 
-				if (this.board.check && this.board.checked.color === this.color && this.board.allowedMoves[this.color].length) {
+				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
 						createFriendlyMove(this, i, j)
 						break;
@@ -609,6 +643,53 @@ export class ChessPiece {
 					}
 				}
 			}
+
+			if (!this.hasMoved && !this.check) {
+				// Check for queenside castling (O-O-O) (Left)
+				for (let i = curPos.x; i >= 0; i--) {
+					// ignore self
+					if (i === curPos.x)
+						continue;
+
+					let blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
+
+					if (!blockingPiece) {
+						let attackingPiece = this.board.getAttackerOnPosition({ x: i, y: curPos.y })
+
+						if (attackingPiece && attackingPiece.color !== this.color && curPos.x - i <= 2) {
+							break;
+						}
+					} else {
+						if (!blockingPiece.isRook())
+							break;
+
+						if (!blockingPiece.hasMoved)
+							createCastlingMove(this, curPos.x - 2, curPos.y, blockingPiece)
+					}
+				}
+
+				// Check for kingside castling (O-O) (Right)
+				for (let i = curPos.x; i <= 7; i++) {
+					// ignore self
+					if (i === curPos.x)
+						continue;
+					let blockingPiece = this.board.getPieceOnPosition({ x: i, y: curPos.y })
+
+					if (!blockingPiece) {
+						let attackingPiece = this.board.getAttackerOnPosition({ x: i, y: curPos.y })
+
+						if (attackingPiece && attackingPiece.color !== this.color && curPos.x - i <= 2) {
+							break;
+						}
+					} else {
+						if (!blockingPiece.isRook())
+							break;
+
+						if (!blockingPiece.hasMoved)
+							createCastlingMove(this, curPos.x + 2, curPos.y, blockingPiece)
+					}
+				}
+			}
 		}
 
 		if (this.moveType & CHESS_MOVE_TYPE.KNIGHT) {
@@ -616,7 +697,7 @@ export class ChessPiece {
 			if (curPos.y - 2 >= 0) {
 				if (curPos.x - 1 >= 0) {
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 
@@ -638,7 +719,7 @@ export class ChessPiece {
 
 				if (curPos.x + 1 <= 7) {
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 
@@ -663,7 +744,7 @@ export class ChessPiece {
 			if (curPos.y + 2 <= 7) {
 				if (curPos.x - 1 >= 0) {
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 
@@ -686,7 +767,7 @@ export class ChessPiece {
 
 				if (curPos.x + 1 <= 7) {
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 
@@ -711,7 +792,7 @@ export class ChessPiece {
 			if (curPos.x - 2 >= 0) {
 				if (curPos.y - 1 >= 0) {
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 
@@ -733,7 +814,7 @@ export class ChessPiece {
 
 				if (curPos.y + 1 <= 7) {
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 
@@ -758,7 +839,7 @@ export class ChessPiece {
 			if (curPos.x + 2 <= 7) {
 				if (curPos.y - 1 >= 0) {
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 
@@ -782,7 +863,7 @@ export class ChessPiece {
 				if (curPos.y + 1 <= 7) {
 
 					let move = true;
-					if (this.board.check && this.board.checked.color === this.color) {
+					if (this.board.check && this.board.check.color === this.color) {
 						if (!this.board.allowedMoves[this.color].length)
 							return [];
 

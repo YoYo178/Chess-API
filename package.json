@@ -1,36 +1,36 @@
 {
-  "name": "chess-api",
-  "description": "A RESTful Chess API made using Node.JS.",
-  "version": "1.0",
-  "author": "-_YoYo178_-",
-  "license": "MIT",
-  "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/YoYo178/Chess-API.git"
-  },
-  "homepage": "https://github.com/YoYo178/Chess-API",
-  "bugs": "https://github.com/YoYo178/Chess-API/issues",
-  "keywords": [
-    "chess",
-    "chess-api",
-    "api",
-    "rest-api",
-    "restful-api",
-    "game"
-  ],
-  "main": "./bin/www",
-  "scripts": {
-    "start": "node ./bin/www"
-  },
-  "dependencies": {
-    "cookie-parser": "~1.4.6",
-    "cors": "^2.8.5",
-    "debug": "~4.3.7",
-    "express": "~4.21.0",
-    "http-errors": "~2.0.0",
-    "jade": "~1.11.0",
-    "morgan": "~1.10.0"
-  },
-  "packageManager": "yarn@4.5.0"
+	"name": "chess-api",
+	"description": "A RESTful Chess API made using Node.JS.",
+	"version": "1.0",
+	"author": "-_YoYo178_-",
+	"license": "MIT",
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/YoYo178/Chess-API.git"
+	},
+	"homepage": "https://github.com/YoYo178/Chess-API",
+	"bugs": "https://github.com/YoYo178/Chess-API/issues",
+	"keywords": [
+		"chess",
+		"chess-api",
+		"api",
+		"rest-api",
+		"restful-api",
+		"game"
+	],
+	"main": "./bin/www",
+	"scripts": {
+		"start": "node ./bin/www"
+	},
+	"dependencies": {
+		"cookie-parser": "~1.4.6",
+		"cors": "^2.8.5",
+		"debug": "~4.3.7",
+		"express": "~4.21.0",
+		"http-errors": "~2.0.0",
+		"jade": "~1.11.0",
+		"morgan": "~1.10.0"
+	},
+	"packageManager": "yarn@4.5.0"
 }
