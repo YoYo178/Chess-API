@@ -46,7 +46,7 @@ router.post("/:pos", (req, res) => {
 		if (req.body.castleTarget)
 			piece.castle(game.getPieceOnPosition(visualToLogical(req.body.castleTarget)))
 
-		req.body.killPos ?
+		let status = req.body.killPos ?
 			game.kill(piece, visualToLogical(req.body.moveTo), game.getPieceOnPosition(visualToLogical(req.body.killPos))) :
 			game.move(piece, visualToLogical(req.body.moveTo))
 
@@ -61,7 +61,11 @@ router.post("/:pos", (req, res) => {
 			stalemate: game.stalemate
 		}
 
-		res.send(sendObj)
+		if(!status)
+		{
+			res.status(400).send({ status: "failed", message: "It is not your turn."})
+		}
+			res.send(sendObj)
 	} catch (error) {
 		res.status(501).send({ status: "failed", message: "An error occured while trying to move the specified piece." })
 		return console.error(error)
