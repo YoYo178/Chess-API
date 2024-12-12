@@ -53,14 +53,11 @@ export class ChessBoard {
 	}
 
 	getPieceOnPosition(pos) {
-		let res = this.pieces[CHESS_COLOR.BLACK].concat(this.pieces[CHESS_COLOR.WHITE]).filter((piece) => {
-			return piece.position.x === pos.x && piece.position.y === pos.y
+		let res = this.pieces[CHESS_COLOR.BLACK].concat(this.pieces[CHESS_COLOR.WHITE]).find((piece) => {
+			piece.position.x === pos.x && piece.position.y === pos.y
 		});
 
-		if (res.length)
-			return res[0];
-
-		return null;
+		return res || null;
 	}
 
 	getAttackerOnPosition(pos) {
@@ -70,14 +67,9 @@ export class ChessBoard {
 			squares = squares.concat(arr)
 		}
 
-		let res = squares.filter(move => {
-			return move.x === pos.x && move.y === pos.y && move.isAttackableMove
-		})
+		let res = squares.find(move => move.x === pos.x && move.y === pos.y && move.isAttackableMove)
 
-		if (res.length)
-			return res[0].attackingPiece;
-
-		return null;
+		return res ? res.attackingPiece : null
 	}
 
 	move(piece, newPos) {
@@ -238,20 +230,20 @@ export class ChessBoard {
 		if (this.check && this.checkers.length) {
 			let allowedMoves = this.allowedMoves[this.check.color]
 			let availableMoves = []
-			let movePossible = this.check.moves.filter(move => !move.isFriendlyPiece);
+			let movePossible = this.check.moves.find(move => !move.isFriendlyPiece);
 
 			for (let piece of Object.values(this.pieces[this.check.color])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
 
 			for (let move of availableMoves) {
-				if (movePossible.length)
+				if (movePossible)
 					break;
 
-				movePossible = allowedMoves.filter(e => { e.x === move.x && e.y === move.y })
+				movePossible = allowedMoves.find(e => e.x === move.x && e.y === move.y )
 			}
 
-			if (!movePossible.length) {
+			if (!movePossible) {
 				this.checkmate = true
 			}
 		} else {
