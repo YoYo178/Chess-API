@@ -81,6 +81,9 @@ export class ChessBoard {
 	}
 
 	move(piece, newPos) {
+		if(piece.color != this.currentTurn)
+			return false;
+
 		// Logical position
 		this.positions[piece.position.y][piece.position.x] = "";
 		this.positions[newPos.y][newPos.x] = piece.type;
@@ -147,6 +150,8 @@ export class ChessBoard {
 
 		this.updateAttackedSquares()
 		this.postMove()
+		
+		return true;
 	}
 
 	kill(piece, newPos, targetPiece) {
