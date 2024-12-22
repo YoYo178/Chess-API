@@ -2,6 +2,7 @@ import express from "express";
 let router = express.Router({ mergeParams: true });
 
 import { encodeMove, games, visualToLogical, logicalToVisual } from "../../../game_src/util.js";
+import { CHESS_MOVE_RESPONSES } from "../../../game_src/ChessVariables.js";
 
 router.get("/:pos", (req, res) => {
 	let id = req.params.gameID
@@ -39,16 +40,25 @@ router.post("/:pos", (req, res) => {
 		return res.status(404).send({ status: "failed", message: "No piece exists on the specified position." });
 
 	try {
+		let status = req.body.killPos ?
+			game.kill(piece, visualToLogical(req.body.moveTo), game.getPieceOnPosition(visualToLogical(req.body.killPos))) :
+			game.move(piece, visualToLogical(req.body.moveTo))
+
+		if(status === CHESS_MOVE_RESPONSES.INVALID_MOVE)
+		{
+			return res.status(400).send({ status: "failed", message: "Invalid move."})
+		}
+
+		if(status === CHESS_MOVE_RESPONSES.INVALID_TURN)
+		{
+			return res.status(400).send({ status: "failed", message: "It is not your turn."})
+		}
 
 		if (req.body.promoteTo)
 			piece.promote(req.body.promoteTo)
 
 		if (req.body.castleTarget)
 			piece.castle(game.getPieceOnPosition(visualToLogical(req.body.castleTarget)))
-
-		let status = req.body.killPos ?
-			game.kill(piece, visualToLogical(req.body.moveTo), game.getPieceOnPosition(visualToLogical(req.body.killPos))) :
-			game.move(piece, visualToLogical(req.body.moveTo))
 
 		let sendObj = {
 			status: "success",
@@ -59,11 +69,6 @@ router.post("/:pos", (req, res) => {
 			checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers,
 			checkmate: game.checkmate,
 			stalemate: game.stalemate
-		}
-
-		if(!status)
-		{
-			res.status(400).send({ status: "failed", message: "It is not your turn."})
 		}
 			res.send(sendObj)
 	} catch (error) {

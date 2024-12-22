@@ -1,4 +1,4 @@
-import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK } from "./ChessVariables.js";
+import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK, CHESS_MOVE_RESPONSES } from "./ChessVariables.js";
 import { ChessPiece } from "./ChessPiece.js";
 import { getDirection, objIncludes, logicalToVisual } from "./util.js";
 
@@ -74,7 +74,10 @@ export class ChessBoard {
 
 	move(piece, newPos) {
 		if(piece.color != this.currentTurn)
-			return false;
+			return CHESS_MOVE_RESPONSES.INVALID_TURN;
+
+		if(!this.validateMove(piece, newPos))
+			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
 
 		// Logical position
 		this.positions[piece.position.y][piece.position.x] = "";
@@ -143,10 +146,17 @@ export class ChessBoard {
 		this.updateAttackedSquares()
 		this.postMove()
 		
-		return true;
+		return CHESS_MOVE_RESPONSES.SUCCESSFUL;
 	}
 
 	kill(piece, newPos, targetPiece) {
+
+		// catnip moment
+		if(piece.color != this.currentTurn)
+			return CHESS_MOVE_RESPONSES.INVALID_TURN;
+
+		if(!this.validateMove(piece, newPos))
+			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
 
 		let targetPieceIndex = 0;
 
@@ -163,6 +173,10 @@ export class ChessBoard {
 		this.attackedSquares[targetPiece.color][targetPiece.type] = []
 
 		return this.move(piece, newPos)
+	}
+
+	validateMove(piece, newPos) {
+		return piece.moves.some(move => move.x === newPos.x && move.y === newPos.y)
 	}
 
 	updateAttackedSquares() {
