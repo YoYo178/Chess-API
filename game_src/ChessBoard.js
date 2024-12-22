@@ -1,6 +1,6 @@
 import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK } from "./ChessVariables.js";
 import { ChessPiece } from "./ChessPiece.js";
-import { getDirection, objIncludes } from "./util.js";
+import { getDirection, objIncludes, logicalToVisual } from "./util.js";
 
 export class ChessBoard {
 	constructor() {
@@ -53,9 +53,9 @@ export class ChessBoard {
 	}
 
 	getPieceOnPosition(pos) {
-		let res = this.pieces[CHESS_COLOR.BLACK].concat(this.pieces[CHESS_COLOR.WHITE]).find((piece) => {
+		let res = this.pieces[CHESS_COLOR.BLACK].concat(this.pieces[CHESS_COLOR.WHITE]).find(piece =>
 			piece.position.x === pos.x && piece.position.y === pos.y
-		});
+		);
 
 		return res || null;
 	}
