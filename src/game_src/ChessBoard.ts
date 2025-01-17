@@ -216,9 +216,6 @@ export class ChessBoard {
 		this.updateAttackedSquares();
 		this.postMove();
 
-		console.log(this.currentTurn);
-		console.log(this._currentTurn);
-
 		return CHESS_MOVE_RESPONSES.SUCCESSFUL;
 	}
 
@@ -342,11 +339,8 @@ export class ChessBoard {
 				movePossible = allowedMoves.find(e => e.x === move.x && e.y === move.y)
 			}
 
-			console.log(movePossible)
-
 			if (!movePossible) {
-				this._checkmate = true
-				console.log("CHECKMATE!")
+				this._checkmate = true;
 			}
 		} else {
 			for (let piece of Object.values(this._pieces[this._currentTurn])) {
