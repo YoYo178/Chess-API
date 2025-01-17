@@ -33,7 +33,7 @@ export function generateGameID(length: number): string {
 }
 
 // helper functions
-export function createMove(piece: ChessPiece, x: number, y: number): TChessMove {
+export function createMove(x: number, y: number): TChessMove {
 	let move: TChessMove = {
 		x,
 		y,
@@ -48,12 +48,11 @@ export function createMove(piece: ChessPiece, x: number, y: number): TChessMove 
 		isCastlingMove: false
 	};
 
-	piece.moves.push(move);
 	return move;
 }
 
-export function createKillingMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
-	piece.moves.push({
+export function createKillingMove(x: number, y: number, targetPiece: ChessPiece): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: targetPiece,
@@ -65,11 +64,13 @@ export function createKillingMove(piece: ChessPiece, x: number, y: number, targe
 		isPawnDiagonal: false,
 		isPromotingMove: false,
 		isCastlingMove: false
-	})
+	};
+
+	return move;
 }
 
-export function createCastlingMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
-	piece.moves.push({
+export function createCastlingMove(x: number, y: number, targetPiece: ChessPiece): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: null,
@@ -81,11 +82,13 @@ export function createCastlingMove(piece: ChessPiece, x: number, y: number, targ
 		isPawnDiagonal: false,
 		isPromotingMove: false,
 		isCastlingMove: true
-	})
+	};
+
+	return move;
 }
 
-export function createEnPassantMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
-	piece.moves.push({
+export function createEnPassantMove(x: number, y: number, targetPiece: ChessPiece): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: targetPiece,
@@ -97,11 +100,13 @@ export function createEnPassantMove(piece: ChessPiece, x: number, y: number, tar
 		isPawnDiagonal: false,
 		isPromotingMove: false,
 		isCastlingMove: false
-	})
+	};
+
+	return move;
 }
 
-export function createFriendlyMove(piece: ChessPiece, x: number, y: number): void {
-	piece.moves.push({
+export function createFriendlyMove(x: number, y: number): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: null,
@@ -113,11 +118,13 @@ export function createFriendlyMove(piece: ChessPiece, x: number, y: number): voi
 		isPawnDiagonal: false,
 		isPromotingMove: false,
 		isCastlingMove: false
-	})
+	};
+
+	return move;
 }
 
-export function createPawnMove(piece: ChessPiece, x: number, y: number): void {
-	piece.moves.push({
+export function createPawnMove(x: number, y: number): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: null,
@@ -129,11 +136,13 @@ export function createPawnMove(piece: ChessPiece, x: number, y: number): void {
 		isPawnDiagonal: false,
 		isPromotingMove: false,
 		isCastlingMove: false
-	})
+	};
+
+	return move;
 }
 
-export function createPawnPromotingMove(piece: ChessPiece, x: number, y: number): void {
-	piece.moves.push({
+export function createPawnPromotingMove(x: number, y: number): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: null,
@@ -145,11 +154,13 @@ export function createPawnPromotingMove(piece: ChessPiece, x: number, y: number)
 		isPawnDiagonal: false,
 		isPromotingMove: true,
 		isCastlingMove: false
-	})
+	};
+
+	return move;
 }
 
-export function createPawnDiagonalMove(piece: ChessPiece, x: number, y: number): void {
-	piece.moves.push({
+export function createPawnDiagonalMove(x: number, y: number): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: null,
@@ -161,11 +172,13 @@ export function createPawnDiagonalMove(piece: ChessPiece, x: number, y: number):
 		isPawnDiagonal: true,
 		isPromotingMove: false,
 		isCastlingMove: false
-	})
+	};
+
+	return move;
 }
 
-export function createPawnDiagonalKillingMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
-	piece.moves.push({
+export function createPawnDiagonalKillingMove(x: number, y: number, targetPiece: ChessPiece): TChessMove {
+	const move = {
 		x,
 		y,
 		killTarget: targetPiece,
@@ -177,7 +190,9 @@ export function createPawnDiagonalKillingMove(piece: ChessPiece, x: number, y: n
 		isPawnDiagonal: true,
 		isPromotingMove: false,
 		isCastlingMove: false
-	})
+	};
+
+	return move;
 }
 
 export const games: Map<string, ChessBoard> = new Map();

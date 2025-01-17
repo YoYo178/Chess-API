@@ -18,8 +18,7 @@ export class ChessPiece {
 	public canEnPassant?: boolean; // ChessBoard reassigns this property
 
 	// King-specific
-	public hasMoved?: boolean; // used to determine if the King can castle
-								// ChessBoard reassigns this property
+	public hasMoved?: boolean; 	// used to determine if the King can castle, ChessBoard reassigns this as well
 
 	public get position(): TChessPosition {
 		return this._position;
@@ -168,15 +167,16 @@ export class ChessPiece {
 
 				// Pawns can kill diagonally
 				let piece = this.board.getPieceOnPosition({ x, y });
-				if (piece && piece.color != this.color) createPawnDiagonalKillingMove(this, x, y, piece)
-				else {
+				if (piece && piece.color != this.color) {
+					this._moves.push(createPawnDiagonalKillingMove(x, y, piece));
+				} else {
 					// Check for En Passant
 					piece = this.board.getPieceOnPosition({ x, y: curPos.y })
 
 					if (piece && piece.color != this.color && piece.canEnPassant)
-						createEnPassantMove(this, x, y, piece)
+						this._moves.push(createEnPassantMove(x, y, piece));
 					else
-						createPawnDiagonalMove(this, x, y)
+						this._moves.push(createPawnDiagonalMove(x, y));
 				}
 			}
 
@@ -207,9 +207,9 @@ export class ChessPiece {
 					let king = this.getKing()
 					let attacker = this.pinner;
 
-					if(!king || !attacker)
+					if (!king || !attacker)
 						return []; // WHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-								// basically impossible
+					// basically impossible
 
 					if (
 						(king.position.x != attacker.position.x || king.position.x != this._position.x || king.position.x != curPos.x) &&
@@ -218,9 +218,9 @@ export class ChessPiece {
 				}
 
 				if (i === 0 || i === 8)
-					createPawnPromotingMove(this, curPos.x, i)
+					this._moves.push(createPawnPromotingMove(curPos.x, i));
 				else
-					createPawnMove(this, curPos.x, i)
+					this._moves.push(createPawnMove(curPos.x, i));
 			}
 		}
 
@@ -238,7 +238,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, curPos.y)
+						this._moves.push(createFriendlyMove(i, curPos.y));
 						break;
 					}
 
@@ -251,7 +251,7 @@ export class ChessPiece {
 					let king = this.getKing()
 					let attacker = this.pinner;
 
-					if(!king || !attacker)
+					if (!king || !attacker)
 						return [];
 
 					if (
@@ -263,11 +263,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, i, curPos.y, blockingPiece)
+							this._moves.push(createKillingMove(i, curPos.y, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, i, curPos.y)
+							this._moves.push(createFriendlyMove(i, curPos.y));
 							isBlocked = true;
 						}
 					} else {
@@ -279,7 +279,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, i, curPos.y);
+				} else this._moves.push(createMove(i, curPos.y));
 			}
 
 			isBlocked = false;
@@ -297,7 +297,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, curPos.y)
+						this._moves.push(createFriendlyMove(i, curPos.y));
 						break;
 					}
 
@@ -309,7 +309,7 @@ export class ChessPiece {
 					let king = this.getKing()
 					let attacker = this.pinner;
 
-					if(!king || !attacker)
+					if (!king || !attacker)
 						return [];
 
 					if (
@@ -321,11 +321,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, i, curPos.y, blockingPiece)
+							this._moves.push(createKillingMove(i, curPos.y, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, i, curPos.y)
+							this._moves.push(createFriendlyMove(i, curPos.y));
 							isBlocked = true;
 						}
 					} else {
@@ -337,7 +337,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, i, curPos.y);
+				} else this._moves.push(createMove(i, curPos.y));
 			}
 
 			isBlocked = false;
@@ -355,7 +355,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, curPos.y)
+						this._moves.push(createFriendlyMove(i, curPos.y));
 						break;
 					}
 
@@ -368,7 +368,7 @@ export class ChessPiece {
 					let king = this.getKing()
 					let attacker = this.pinner;
 
-					if(!king || !attacker)
+					if (!king || !attacker)
 						return [];
 
 					if (
@@ -380,11 +380,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, curPos.x, i, blockingPiece)
+							this._moves.push(createKillingMove(curPos.x, i, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, curPos.x, i)
+							this._moves.push(createFriendlyMove(curPos.x, i));
 							isBlocked = true;
 						}
 					} else {
@@ -396,7 +396,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, curPos.x, i);
+				} else this._moves.push(createMove(curPos.x, i));
 			}
 
 			isBlocked = false;
@@ -414,7 +414,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, curPos.y)
+						this._moves.push(createFriendlyMove(i, curPos.y));
 						break;
 					}
 
@@ -427,7 +427,7 @@ export class ChessPiece {
 					let king = this.getKing()
 					let attacker = this.pinner;
 
-					if(!king || !attacker)
+					if (!king || !attacker)
 						return [];
 
 					if (
@@ -439,11 +439,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, curPos.x, i, blockingPiece)
+							this._moves.push(createKillingMove(curPos.x, i, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, curPos.x, i)
+							this._moves.push(createFriendlyMove(curPos.x, i));
 							isBlocked = true;
 						}
 					} else {
@@ -455,7 +455,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, curPos.x, i);
+				} else this._moves.push(createMove(curPos.x, i));
 			}
 
 			isBlocked = false;
@@ -475,7 +475,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, j)
+						this._moves.push(createFriendlyMove(i, j));
 						break;
 					}
 
@@ -492,11 +492,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, i, j, blockingPiece)
+							this._moves.push(createKillingMove(i, j, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, i, j)
+							this._moves.push(createFriendlyMove(i, j));
 							isBlocked = true;
 						}
 					} else {
@@ -508,7 +508,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, i, j);
+				} else this._moves.push(createMove(i, j));
 			}
 
 			isBlocked = false;
@@ -526,7 +526,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, j)
+						this._moves.push(createFriendlyMove(i, j));
 						break;
 					}
 
@@ -543,11 +543,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, i, j, blockingPiece)
+							this._moves.push(createKillingMove(i, j, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, i, j)
+							this._moves.push(createFriendlyMove(i, j));
 							isBlocked = true;
 						}
 					} else {
@@ -559,7 +559,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, i, j);
+				} else this._moves.push(createMove(i, j));
 			}
 
 			isBlocked = false;
@@ -577,7 +577,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, j)
+						this._moves.push(createFriendlyMove(i, j));
 						break;
 					}
 
@@ -594,11 +594,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, i, j, blockingPiece)
+							this._moves.push(createKillingMove(i, j, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, i, j)
+							this._moves.push(createFriendlyMove(i, j));
 							isBlocked = true;
 						}
 					} else {
@@ -610,7 +610,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, i, j);
+				} else this._moves.push(createMove(i, j));
 			}
 
 			isBlocked = false;
@@ -628,7 +628,7 @@ export class ChessPiece {
 
 				if (this.board.check && this.board.check.color === this.color && this.board.allowedMoves[this.color].length) {
 					if (blockingPiece && blockingPiece.color === this.color) {
-						createFriendlyMove(this, i, j)
+						this._moves.push(createFriendlyMove(i, j));
 						break;
 					}
 
@@ -645,11 +645,11 @@ export class ChessPiece {
 				if (blockingPiece) {
 					if (!isBlocked) {
 						if (blockingPiece.color != this.color) {
-							createKillingMove(this, i, j, blockingPiece)
+							this._moves.push(createKillingMove(i, j, blockingPiece));
 							if (!blockingPiece.isKing()) isBlocked = true;
 						}
 						else {
-							createFriendlyMove(this, i, j)
+							this._moves.push(createFriendlyMove(i, j));
 							isBlocked = true;
 						}
 					} else {
@@ -661,7 +661,7 @@ export class ChessPiece {
 								this.board.pinnedPieces.push(blockingPiece)
 						}
 					}
-				} else createMove(this, i, j);
+				} else this._moves.push(createMove(i, j));
 			}
 
 			isBlocked = false;
@@ -681,12 +681,12 @@ export class ChessPiece {
 
 						if (blockingPiece) {
 							if (blockingPiece.color != this.color)
-								createKillingMove(this, curPos.x + xOffset, curPos.y + yOffset, blockingPiece)
+								this._moves.push(createKillingMove(curPos.x + xOffset, curPos.y + yOffset, blockingPiece));
 							else
-								createFriendlyMove(this, curPos.x + xOffset, curPos.y + yOffset)
+								this._moves.push(createFriendlyMove(curPos.x + xOffset, curPos.y + yOffset));
 						} else {
 							if (!attackingPiece || attackingPiece.color === this.color)
-								createMove(this, curPos.x + xOffset, curPos.y + yOffset);
+								this._moves.push(createMove(curPos.x + xOffset, curPos.y + yOffset));
 						}
 					}
 				}
@@ -712,7 +712,7 @@ export class ChessPiece {
 							break;
 
 						if (!blockingPiece.hasMoved)
-							createCastlingMove(this, curPos.x - 2, curPos.y, blockingPiece)
+							this._moves.push(createCastlingMove(curPos.x - 2, curPos.y, blockingPiece));
 					}
 				}
 
@@ -734,7 +734,7 @@ export class ChessPiece {
 							break;
 
 						if (!blockingPiece.hasMoved)
-							createCastlingMove(this, curPos.x + 2, curPos.y, blockingPiece)
+							this._moves.push(createCastlingMove(curPos.x + 2, curPos.y, blockingPiece));
 					}
 				}
 			}
@@ -756,12 +756,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 1, y: curPos.y - 2 })
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x - 1, curPos.y - 2, otherPiece)
+								this._moves.push(createKillingMove(curPos.x - 1, curPos.y - 2, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x - 1, curPos.y - 2)
+								this._moves.push(createFriendlyMove(curPos.x - 1, curPos.y - 2));
 						}
 						else
-							createMove(this, curPos.x - 1, curPos.y - 2);
+							this._moves.push(createMove(curPos.x - 1, curPos.y - 2));
 					}
 				}
 
@@ -778,12 +778,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 1, y: curPos.y - 2 })
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x + 1, curPos.y - 2, otherPiece)
+								this._moves.push(createKillingMove(curPos.x + 1, curPos.y - 2, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x + 1, curPos.y - 2)
+								this._moves.push(createFriendlyMove(curPos.x + 1, curPos.y - 2));
 						}
 						else
-							createMove(this, curPos.x + 1, curPos.y - 2);
+							this._moves.push(createMove(curPos.x + 1, curPos.y - 2));
 					}
 				}
 			}
@@ -803,12 +803,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 1, y: curPos.y + 2 });
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x - 1, curPos.y + 2, otherPiece)
+								this._moves.push(createKillingMove(curPos.x - 1, curPos.y + 2, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x - 1, curPos.y + 2)
+								this._moves.push(createFriendlyMove(curPos.x - 1, curPos.y + 2));
 						}
 						else
-							createMove(this, curPos.x - 1, curPos.y + 2);
+							this._moves.push(createMove(curPos.x - 1, curPos.y + 2));
 					}
 				}
 
@@ -826,12 +826,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 1, y: curPos.y + 2 });
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x + 1, curPos.y + 2, otherPiece)
+								this._moves.push(createKillingMove(curPos.x + 1, curPos.y + 2, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x + 1, curPos.y + 2)
+								this._moves.push(createFriendlyMove(curPos.x + 1, curPos.y + 2));
 						}
 						else
-							createMove(this, curPos.x + 1, curPos.y + 2);
+							this._moves.push(createMove(curPos.x + 1, curPos.y + 2));
 					}
 				}
 			}
@@ -851,12 +851,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 2, y: curPos.y - 1 })
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x - 2, curPos.y - 1, otherPiece)
+								this._moves.push(createKillingMove(curPos.x - 2, curPos.y - 1, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x - 2, curPos.y - 1)
+								this._moves.push(createFriendlyMove(curPos.x - 2, curPos.y - 1));
 						}
 						else
-							createMove(this, curPos.x - 2, curPos.y - 1);
+							this._moves.push(createMove(curPos.x - 2, curPos.y - 1));
 					}
 				}
 
@@ -873,12 +873,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x - 2, y: curPos.y + 1 })
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x - 2, curPos.y + 1, otherPiece)
+								this._moves.push(createKillingMove(curPos.x - 2, curPos.y + 1, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x - 2, curPos.y + 1)
+								this._moves.push(createFriendlyMove(curPos.x - 2, curPos.y + 1));
 						}
 						else
-							createMove(this, curPos.x - 2, curPos.y + 1);
+							this._moves.push(createMove(curPos.x - 2, curPos.y + 1));
 					}
 				}
 			}
@@ -898,12 +898,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 2, y: curPos.y - 1 })
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x + 2, curPos.y - 1, otherPiece)
+								this._moves.push(createKillingMove(curPos.x + 2, curPos.y - 1, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x + 2, curPos.y - 1)
+								this._moves.push(createFriendlyMove(curPos.x + 2, curPos.y - 1));
 						}
 						else
-							createMove(this, curPos.x + 2, curPos.y - 1);
+							this._moves.push(createMove(curPos.x + 2, curPos.y - 1));
 					}
 				}
 
@@ -923,12 +923,12 @@ export class ChessPiece {
 						let otherPiece = this.board.getPieceOnPosition({ x: curPos.x + 2, y: curPos.y + 1 })
 						if (otherPiece) {
 							if (otherPiece.color != this.color)
-								createKillingMove(this, curPos.x + 2, curPos.y + 1, otherPiece)
+								this._moves.push(createKillingMove(curPos.x + 2, curPos.y + 1, otherPiece));
 							else
-								createFriendlyMove(this, curPos.x + 2, curPos.y + 1)
+								this._moves.push(createFriendlyMove(curPos.x + 2, curPos.y + 1));
 						}
 						else
-							createMove(this, curPos.x + 2, curPos.y + 1);
+							this._moves.push(createMove(curPos.x + 2, curPos.y + 1));
 					}
 
 				}

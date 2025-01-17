@@ -316,31 +316,28 @@ export class ChessBoard {
 
 					// yes this is intentional
 					// however pushing this move to king's available moves isn't
-					this._allowedMoves[king.color].push(createMove(king, i, j))
+					this._allowedMoves[king.color].push(createMove(i, j))
 				}
 			}
 
-			this._allowedMoves[king.color].push(createMove(king, checker.position.x, checker.position.y))
+			this._allowedMoves[king.color].push(createMove(checker.position.x, checker.position.y))
 		}
 
 		let availableMoves: TChessMove[] = []
 
 		if (this._check && this._checkers.length) {
 			let allowedMoves = this._allowedMoves[this._check.color]
-			let movePossible: TChessMove | undefined = allowedMoves.find(move => !move.isFriendlyPiece);
+			let possibleMoves: TChessMove[] = this._check.moves.filter(move => !move.isFriendlyPiece);
 
 			for (let piece of Object.values(this._pieces[this._check.color])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
 
-			for (let move of availableMoves) {
-				if (movePossible)
-					break;
-
-				movePossible = allowedMoves.find(e => e.x === move.x && e.y === move.y)
+			for (const availableMove of availableMoves) {
+				possibleMoves = allowedMoves.filter((allowedMove: TChessMove) => allowedMove.x === availableMove.x && allowedMove.y === availableMove.y)
 			}
 
-			if (!movePossible) {
+			if (!possibleMoves.length) {
 				this._checkmate = true;
 			}
 		} else {
