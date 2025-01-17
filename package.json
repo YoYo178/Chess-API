@@ -24,13 +24,13 @@
 		"start": "node ./bin/www"
 	},
 	"dependencies": {
-		"cookie-parser": "~1.4.6",
+		"cookie-parser": "~1.4.7",
 		"cors": "^2.8.5",
-		"debug": "~4.3.7",
-		"express": "~4.21.0",
+		"debug": "~4.4.0",
+		"express": "^4.21.2",
 		"http-errors": "~2.0.0",
 		"jade": "~1.11.0",
 		"morgan": "~1.10.0"
 	},
-	"packageManager": "yarn@4.5.0"
+	"packageManager": "yarn@4.6.0"
 }
