@@ -4,7 +4,6 @@
 	"version": "1.0",
 	"author": "-_YoYo178_-",
 	"license": "MIT",
-	"type": "module",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/YoYo178/Chess-API.git"
@@ -21,7 +20,9 @@
 	],
 	"main": "./bin/www",
 	"scripts": {
-		"start": "node ./bin/www"
+		"start": "node ./dist/bin/www.js",
+		"build": "tsc -p tsconfig.json",
+		"build-debug": "tsc -p tsconfig.json --inlineSourceMap"
 	},
 	"dependencies": {
 		"cookie-parser": "~1.4.7",
@@ -36,9 +37,12 @@
 	"devDependencies": {
 		"@types/cookie-parser": "^1.4.8",
 		"@types/cors": "^2.8.17",
+		"@types/debug": "^4.1.12",
 		"@types/express": "^5.0.0",
 		"@types/morgan": "^1.9.9",
+		"ts-node": "^10.9.2",
 		"ts-node-dev": "^2.0.0",
+		"tsconfig-paths": "^4.2.0",
 		"typescript": "^5.7.3"
 	}
 }

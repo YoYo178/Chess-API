@@ -1,87 +1,155 @@
-import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK, CHESS_MOVE_RESPONSES } from "./ChessVariables.js";
+import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK, CHESS_MOVE_RESPONSES, CHESS_PIECE } from "./ChessVariables.js";
+import { TChessMove, TChessPosition } from "../types/ChessTypes.js";
+import { createMove, getDirection, objIncludes } from "./util.js";
 import { ChessPiece } from "./ChessPiece.js";
-import { getDirection, objIncludes, logicalToVisual } from "./util.js";
 
 export class ChessBoard {
+	// Properties
+	private _positions: string[][];
+	private _pieces: {
+		[key in CHESS_COLOR]: ChessPiece[]
+	};
+	private _allowedMoves: {
+		[key in CHESS_COLOR]: TChessMove[]
+	};
+	private attackedSquares: {
+		[key in CHESS_COLOR]: {
+			[piece in CHESS_PIECE]?: TChessMove[];
+		}
+	};
+	private _currentTurn: CHESS_COLOR;
+	private _check: ChessPiece | null;
+	private _checkers: ChessPiece[];
+	private _checkmate: boolean;
+	private _stalemate: boolean;
+	private _pinnedPieces: ChessPiece[];
+
+	// getters and setters
+	public get currentTurn(): CHESS_COLOR {
+		return this._currentTurn;
+	}
+
+	public get positions(): string[][] {
+		return this._positions;
+	}
+
+	public get check(): ChessPiece | null {
+		return this._check;
+	}
+
+	public get checkers(): ChessPiece[] {
+		return this._checkers;
+	}
+
+	public get checkmate(): boolean {
+		return this._checkmate;
+	}
+
+	public get stalemate(): boolean {
+		return this._stalemate;
+	}
+
+	public get pieces(): ({ [key in CHESS_COLOR]: ChessPiece[] }) {
+		return this._pieces;
+	}
+
+	public get allowedMoves(): ({ [key in CHESS_COLOR]: TChessMove[] }) {
+		return this._allowedMoves;
+	}
+
+	public get pinnedPieces(): ChessPiece[] {
+		return this._pinnedPieces;
+	}
+
 	constructor() {
-		this.positions = [[], [], [], [], [], [], [], []];
-		this.pieces = {
+		this._positions = [[], [], [], [], [], [], [], []];
+		this._pieces = {
 			[CHESS_COLOR.WHITE]: [],
 			[CHESS_COLOR.BLACK]: []
 		};
 		this.attackedSquares = {
 			[CHESS_COLOR.WHITE]: {},
 			[CHESS_COLOR.BLACK]: {}
-		}
-		this.allowedMoves = {
+		};
+		this._allowedMoves = {
 			[CHESS_COLOR.WHITE]: [],
 			[CHESS_COLOR.BLACK]: []
-		}
-		this.currentTurn = ""
+		};
+		this._currentTurn = CHESS_COLOR.WHITE;
 
-		this.check = null;
-		this.checkers = [];
+		this._check = null;
+		this._checkers = [];
 
-		this.checkmate = false;
-		this.stalemate = false;
+		this._checkmate = false;
+		this._stalemate = false;
 
-		this.pinnedPieces = []
+		this._pinnedPieces = [];
 	}
 
-	async init() {
+	async init(): Promise<void> {
 		for (let i = 0; i != 8; i++) {
 			for (let j = 0; j != 8; j++) {
-				let curPiece = defaultBoard[i][j];
-				this.positions[i].push(curPiece);
+				const curPiece: CHESS_PIECE = defaultBoard[i][j] as CHESS_PIECE;
+				this._positions[i].push(curPiece);
 
 				if (curPiece) {
 					if (objIncludes(CHESS_PIECE_BLACK, curPiece)) {
-						this.pieces[CHESS_COLOR.BLACK].push(new ChessPiece(this, CHESS_COLOR.BLACK, curPiece, { x: j, y: i }));
-						this.attackedSquares[CHESS_COLOR.BLACK][curPiece] = []
+						this._pieces[CHESS_COLOR.BLACK].push(new ChessPiece(this, CHESS_COLOR.BLACK, curPiece, { x: j, y: i }));
+						this.attackedSquares[CHESS_COLOR.BLACK][curPiece] = [];
 					}
 					else {
-						this.pieces[CHESS_COLOR.WHITE].push(new ChessPiece(this, CHESS_COLOR.WHITE, curPiece, { x: j, y: i }));
-						this.attackedSquares[CHESS_COLOR.WHITE][curPiece] = []
+						this._pieces[CHESS_COLOR.WHITE].push(new ChessPiece(this, CHESS_COLOR.WHITE, curPiece, { x: j, y: i }));
+						this.attackedSquares[CHESS_COLOR.WHITE][curPiece] = [];
 					}
 				}
 			}
 		}
 
-		this.currentTurn = CHESS_COLOR.WHITE
+		this._currentTurn = CHESS_COLOR.WHITE;
 
-		this.updateAttackedSquares()
+		this.updateAttackedSquares();
 	}
 
-	getPieceOnPosition(pos) {
-		let res = this.pieces[CHESS_COLOR.BLACK].concat(this.pieces[CHESS_COLOR.WHITE]).find(piece =>
+	getOtherTurn(): CHESS_COLOR {
+		return this._currentTurn === CHESS_COLOR.BLACK ? CHESS_COLOR.WHITE : CHESS_COLOR.BLACK;
+	}
+
+	private nextTurn() {
+		this._currentTurn = this.getOtherTurn();
+	}
+
+	getPieceOnPosition(pos: TChessPosition): ChessPiece | undefined {
+		const concatPiecesArr = this._pieces[CHESS_COLOR.BLACK].concat(this._pieces[CHESS_COLOR.WHITE]);
+
+		const res = concatPiecesArr.find((piece: ChessPiece) =>
 			piece.position.x === pos.x && piece.position.y === pos.y
 		);
 
-		return res || null;
+		return res;
 	}
 
-	getAttackerOnPosition(pos) {
-		let squares = []
+	getAttackerOnPosition(pos: TChessPosition): ChessPiece | undefined {
+		let attackedSquares: TChessMove[] = [];
 
-		for (let arr of Object.values(this.attackedSquares[this.currentTurn === CHESS_COLOR.BLACK ? CHESS_COLOR.WHITE : CHESS_COLOR.BLACK])) {
-			squares = squares.concat(arr)
+		for (const squares of Object.values(this.attackedSquares[this.getOtherTurn()])) {
+			attackedSquares = attackedSquares.concat(squares);
 		}
 
-		let res = squares.find(move => move.x === pos.x && move.y === pos.y && move.isAttackableMove)
+		const res = attackedSquares.find((move: TChessMove) => move.x === pos.x && move.y === pos.y && move.isAttackableMove);
 
-		return res ? res.attackingPiece : null
+		return res?.attackingPiece;
 	}
 
-	move(piece, newPos) {
-		if(piece.color != this.currentTurn)
+	move(piece: ChessPiece, newPos: TChessPosition): CHESS_MOVE_RESPONSES {
+		if (piece.color != this._currentTurn)
 			return CHESS_MOVE_RESPONSES.INVALID_TURN;
 
-		if(!this.validateMove(piece, newPos))
+		if (!this.validateMove(piece, newPos))
 			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
 
 		// Logical position
-		this.positions[piece.position.y][piece.position.x] = "";
-		this.positions[newPos.y][newPos.x] = piece.type;
+		this._positions[piece.position.y][piece.position.x] = "";
+		this._positions[newPos.y][newPos.x] = piece.type;
 
 		// EN PASSANT
 		if (piece.isPawn() && piece.pawnInitialMove) {
@@ -91,51 +159,53 @@ export class ChessBoard {
 				let otherPiece = null;
 
 				if (!otherPiece && newPos.x - 1 >= 0)
-					otherPiece = this.getPieceOnPosition({ x: newPos.x - 1, y: newPos.y })
+					otherPiece = this.getPieceOnPosition({ x: newPos.x - 1, y: newPos.y });
 
 				if (!otherPiece && newPos.x + 1 < 8)
-					otherPiece = this.getPieceOnPosition({ x: newPos.x + 1, y: newPos.y })
+					otherPiece = this.getPieceOnPosition({ x: newPos.x + 1, y: newPos.y });
 
 				if (otherPiece && otherPiece.color != piece.color)
 					piece.canEnPassant = true;
 			}
 		}
 
-		if (this.check) {
-			this.check = null;
-			this.checkers = [];
+		if (this._check) {
+			this._check = null;
+			this._checkers = [];
 
-			this.allowedMoves = {
+			this._allowedMoves = {
 				[CHESS_COLOR.WHITE]: [],
 				[CHESS_COLOR.BLACK]: []
-			}
+			};
 		}
 
 		piece.position.x = newPos.x;
 		piece.position.y = newPos.y;
 
-		if (this.currentTurn === CHESS_COLOR.WHITE)
-			this.currentTurn = CHESS_COLOR.BLACK
-		else
-			this.currentTurn = CHESS_COLOR.WHITE
+		this.nextTurn();
 
 		// do we need to unpin any pinned piece?
-		this.pinnedPieces.forEach(pinPiece => {
-			let pinnedColorKing = pinPiece.getKing()
+		this._pinnedPieces.forEach(pinnedPiece => {
+			let pinnedColorKing = pinnedPiece.getKing();
+
+			// should never happen
+			if (!pinnedColorKing) {
+				return console.error("SOMETHING WENT HORRIBLY WRONG");
+			}
 
 			// comparing by types is unreliable for any piece except king and queen, since other pieces can be multiple
 			// so we compare by their positions instead
 			if (
 				pinnedColorKing.type === piece.type ||
-				pinPiece.pinner.position.x === piece.position.x && pinPiece.pinner.position.y === piece.position.y ||
-				pinPiece.position.x === piece.position.x && pinPiece.position.y === piece.position.y
+				pinnedPiece.pinner?.position.x === piece.position.x && pinnedPiece.pinner?.position.y === piece.position.y ||
+				pinnedPiece.position.x === piece.position.x && pinnedPiece.position.y === piece.position.y
 			) {
-				pinPiece.isPinned = false;
-				pinPiece.pinner = null;
+				pinnedPiece.isPinned = false;
+				pinnedPiece.pinner = null;
 
-				this.pinnedPieces.forEach((pin, index) => {
-					if (pin.position.x === pinPiece.position.x && pin.position.y === pinPiece.position.y)
-						this.pinnedPieces.splice(index, 1)
+				this._pinnedPieces.forEach((pin, index) => {
+					if (pin.position.x === pinnedPiece.position.x && pin.position.y === pinnedPiece.position.y)
+						this._pinnedPieces.splice(index, 1);
 				})
 			}
 		})
@@ -143,75 +213,84 @@ export class ChessBoard {
 		if (!piece.hasMoved)
 			piece.hasMoved = true;
 
-		this.updateAttackedSquares()
-		this.postMove()
-		
+		this.updateAttackedSquares();
+		this.postMove();
+
+		console.log(this.currentTurn);
+		console.log(this._currentTurn);
+
 		return CHESS_MOVE_RESPONSES.SUCCESSFUL;
 	}
 
-	kill(piece, newPos, targetPiece) {
+	kill(piece: ChessPiece, newPos: TChessPosition, targetPiece: ChessPiece): CHESS_MOVE_RESPONSES {
 
 		// catnip moment
-		if(piece.color != this.currentTurn)
+		if (piece.color != this._currentTurn)
 			return CHESS_MOVE_RESPONSES.INVALID_TURN;
 
-		if(!this.validateMove(piece, newPos))
+		if (!this.validateMove(piece, newPos))
 			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
 
 		let targetPieceIndex = 0;
 
-		this.positions[targetPiece.position.y][targetPiece.position.x] = ""
+		this._positions[targetPiece.position.y][targetPiece.position.x] = "";
 
-		this.pieces[targetPiece.color].map((e, i) => {
-			if (e.position.x === targetPiece.position.x && e.position.y === targetPiece.position.y) {
-				targetPieceIndex = i
+		this._pieces[targetPiece.color].map((piece: ChessPiece, index: number) => {
+			if (piece.position.x === targetPiece.position.x && piece.position.y === targetPiece.position.y) {
+				targetPieceIndex = index;
 			}
 		})
 
-		this.pieces[targetPiece.color].splice(targetPieceIndex, 1)
+		this._pieces[targetPiece.color].splice(targetPieceIndex, 1);
 
-		this.attackedSquares[targetPiece.color][targetPiece.type] = []
+		this.attackedSquares[targetPiece.color][targetPiece.type] = [];
 
-		return this.move(piece, newPos)
+		return this.move(piece, newPos);
 	}
 
-	validateMove(piece, newPos) {
-		return piece.moves.some(move => move.x === newPos.x && move.y === newPos.y)
+	validateMove(piece: ChessPiece, newPos: TChessPosition): boolean {
+		return piece.moves.some(move => move.x === newPos.x && move.y === newPos.y);
 	}
 
 	updateAttackedSquares() {
 		// clear attacked squares
-		for (let piece of this.pieces[CHESS_COLOR.BLACK].concat(this.pieces[CHESS_COLOR.WHITE])) {
-			this.attackedSquares[piece.color][piece.type] = []
+		for (let piece of this._pieces[CHESS_COLOR.BLACK].concat(this._pieces[CHESS_COLOR.WHITE])) {
+			this.attackedSquares[piece.color][piece.type] = [];
 		}
 
 		// update attacked squares
-		for (let piece of this.pieces[CHESS_COLOR.BLACK].concat(this.pieces[CHESS_COLOR.WHITE])) {
-			let attackedSquares = piece.getMovablePositions()
-			for (let [index, value] of Object.entries(attackedSquares)) {
+		for (let piece of this._pieces[CHESS_COLOR.BLACK].concat(this._pieces[CHESS_COLOR.WHITE])) {
+			let attackedSquares: TChessMove[] = piece.getMovablePositions();
+			for (let [i, v] of Object.entries(attackedSquares)) {
+				const index: number = i as unknown as number; // dun'ask'me'y
+				const move: TChessMove = v;
+
 				if (piece.isPawn()) {
-					if (!value["isAttackableMove"] || !value["isPawnDiagonal"]) continue;
+					if (!move.isAttackableMove || !move.isPawnDiagonal)
+						continue;
 				}
 
-				value["attackingPiece"] = piece;
-				attackedSquares[index] = value
+				move.attackingPiece = piece;
+				attackedSquares[index] = move;
 
-				if (value["isKillingMove"] && value["killTarget"].isKing()) {
-					this.check = value["killTarget"];
-					this.checkers.push(piece);
+				if (move.isKillingMove && move.killTarget?.isKing()) {
+					this._check = move.killTarget;
+
+					if(!this._checkers.find((checkingPiece: ChessPiece) => checkingPiece.position.x === piece.position.x && checkingPiece.position.y === piece.position.y))
+						this._checkers.push(piece);
 				}
 			}
-			this.attackedSquares[piece.color][piece.type] = this.attackedSquares[piece.color][piece.type].concat(attackedSquares);
+			this.attackedSquares[piece.color][piece.type] = this.attackedSquares[piece.color][piece.type]?.concat(attackedSquares);
 		}
 	}
 
 	// never meant to be called from outside the class
-	postMove() {
-		if (this.checkers.length === 1) {
-			let king = this.check;
-			let checker = this.checkers[0]
+	private postMove() {
+		if (this._checkers.length === 1) {
+			let king: ChessPiece = this._check as ChessPiece; // explicit cast because this._check will not be null if this._checkers.length > 0
+			let checker: ChessPiece = this._checkers[0];
 
-			let dir = getDirection(king.position, checker.position)
+			let dir: TChessPosition = getDirection(king.position, checker.position)
 
 			if (!checker.isKnight()) {
 				for (
@@ -235,18 +314,24 @@ export class ChessBoard {
 					if (i === king.position.x && j === king.position.y)
 						continue;
 
-					this.allowedMoves[king.color].push({ x: i, y: j })
+					// no idea why these lines exist
+					// ???
+					//this._allowedMoves[king.color].push(createMove(king, i, j))
 				}
 			}
-			this.allowedMoves[king.color].push({ x: checker.position.x, y: checker.position.y })
+
+			// no idea why these lines exist
+			// ???
+			//this._allowedMoves[king.color].push(createMove(king, checker.position.x, checker.position.y))
 		}
 
-		if (this.check && this.checkers.length) {
-			let allowedMoves = this.allowedMoves[this.check.color]
-			let availableMoves = []
-			let movePossible = this.check.moves.find(move => !move.isFriendlyPiece);
+		let availableMoves: TChessMove[] = []
 
-			for (let piece of Object.values(this.pieces[this.check.color])) {
+		if (this._check && this._checkers.length) {
+			let allowedMoves = this._allowedMoves[this._check.color]
+			let movePossible: TChessMove | undefined = allowedMoves.find(move => !move.isFriendlyPiece);
+
+			for (let piece of Object.values(this._pieces[this._check.color])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
 
@@ -254,22 +339,23 @@ export class ChessBoard {
 				if (movePossible)
 					break;
 
-				movePossible = allowedMoves.find(e => e.x === move.x && e.y === move.y )
+				movePossible = allowedMoves.find(e => e.x === move.x && e.y === move.y)
 			}
+
+			console.log(movePossible)
 
 			if (!movePossible) {
-				this.checkmate = true
+				this._checkmate = true
+				console.log("CHECKMATE!")
 			}
 		} else {
-			let availableMoves = []
-
-			for (let piece of Object.values(this.pieces[this.currentTurn])) {
+			for (let piece of Object.values(this._pieces[this._currentTurn])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
 			availableMoves = availableMoves.filter(move => !move.isFriendlyPiece && (move.isPawnDiagonal ? move.isKillingMove : true))
 
 			if (!availableMoves.length)
-				this.stalemate = true
+				this._stalemate = true
 		}
 	}
 }

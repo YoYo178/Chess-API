@@ -1,4 +1,8 @@
-export function objIncludes(obj, element) {
+import { ChessBoard } from "./ChessBoard";
+import { TChessMove, TChessPosition } from "../types/ChessTypes";
+import { ChessPiece } from "./ChessPiece";
+
+export function objIncludes(obj: any, element: any): boolean {
 	let res = false;
 	for (let value of Object.values(obj)) {
 		if (value === element) {
@@ -10,18 +14,18 @@ export function objIncludes(obj, element) {
 	return res;
 }
 
-export function logicalToVisual(pos) {
+export function logicalToVisual(pos: TChessPosition): string {
 	return String.fromCharCode(pos.x + 97) + String(8 - pos.y)
 }
 
-export function visualToLogical(strPos) {
+export function visualToLogical(strPos: string): TChessPosition {
 	return {
 		x: strPos[0].charCodeAt(0) - 97,
 		y: 8 - +strPos[1]
 	}
 }
 
-export function generateGameID(length) {
+export function generateGameID(length: number): string {
 	let chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	let result = '';
 	for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
@@ -29,8 +33,8 @@ export function generateGameID(length) {
 }
 
 // helper functions
-export function createMove(piece, x, y) {
-	piece.moves.push({
+export function createMove(piece: ChessPiece, x: number, y: number): TChessMove {
+	let move: TChessMove = {
 		x,
 		y,
 		killTarget: null,
@@ -42,10 +46,13 @@ export function createMove(piece, x, y) {
 		isPawnDiagonal: false,
 		isPromotingMove: false,
 		isCastlingMove: false
-	})
+	};
+
+	piece.moves.push(move);
+	return move;
 }
 
-export function createKillingMove(piece, x, y, targetPiece) {
+export function createKillingMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
 	piece.moves.push({
 		x,
 		y,
@@ -61,7 +68,7 @@ export function createKillingMove(piece, x, y, targetPiece) {
 	})
 }
 
-export function createCastlingMove(piece, x, y, targetPiece) {
+export function createCastlingMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
 	piece.moves.push({
 		x,
 		y,
@@ -77,7 +84,7 @@ export function createCastlingMove(piece, x, y, targetPiece) {
 	})
 }
 
-export function createEnPassantMove(piece, x, y, targetPiece) {
+export function createEnPassantMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
 	piece.moves.push({
 		x,
 		y,
@@ -93,7 +100,7 @@ export function createEnPassantMove(piece, x, y, targetPiece) {
 	})
 }
 
-export function createFriendlyMove(piece, x, y) {
+export function createFriendlyMove(piece: ChessPiece, x: number, y: number): void {
 	piece.moves.push({
 		x,
 		y,
@@ -109,7 +116,7 @@ export function createFriendlyMove(piece, x, y) {
 	})
 }
 
-export function createPawnMove(piece, x, y) {
+export function createPawnMove(piece: ChessPiece, x: number, y: number): void {
 	piece.moves.push({
 		x,
 		y,
@@ -125,7 +132,7 @@ export function createPawnMove(piece, x, y) {
 	})
 }
 
-export function createPawnPromotingMove(piece, x, y) {
+export function createPawnPromotingMove(piece: ChessPiece, x: number, y: number): void {
 	piece.moves.push({
 		x,
 		y,
@@ -141,7 +148,7 @@ export function createPawnPromotingMove(piece, x, y) {
 	})
 }
 
-export function createPawnDiagonalMove(piece, x, y) {
+export function createPawnDiagonalMove(piece: ChessPiece, x: number, y: number): void {
 	piece.moves.push({
 		x,
 		y,
@@ -157,7 +164,7 @@ export function createPawnDiagonalMove(piece, x, y) {
 	})
 }
 
-export function createPawnDiagonalKillingMove(piece, x, y, targetPiece) {
+export function createPawnDiagonalKillingMove(piece: ChessPiece, x: number, y: number, targetPiece: ChessPiece): void {
 	piece.moves.push({
 		x,
 		y,
@@ -173,9 +180,9 @@ export function createPawnDiagonalKillingMove(piece, x, y, targetPiece) {
 	})
 }
 
-export const games = new Map();
+export const games: Map<string, ChessBoard> = new Map();
 
-export function encodeMove(moveObj) {
+export function encodeMove(moveObj: TChessMove) {
 	let move = logicalToVisual(moveObj)
 	move += ":"
 
@@ -203,11 +210,11 @@ export function encodeMove(moveObj) {
 	return move
 }
 
-export function getDirection(start, dest) {
+export function getDirection(start: TChessPosition, dest: TChessPosition): TChessPosition {
 	return { x: dest.x - start.x, y: dest.y - start.y }
 }
 
-export function getLowerDiagonalBounds(pos, mode) {
+export function getLowerDiagonalBounds(pos: TChessPosition, mode: "acw" | "cw"): TChessPosition {
 	let retObj = { x: pos.x, y: pos.y }
 
 	switch (mode) {
@@ -231,18 +238,18 @@ export function getLowerDiagonalBounds(pos, mode) {
 	return retObj
 }
 
-export function checkSameDiagonal() {
+export function checkSameDiagonal(...args: any): boolean {
+	let res = false;
+
 	if (!arguments.length)
-		return;
+		return res;
 
-	let arr = Array.from(arguments)
-	let res = []
+	let posArr: TChessPosition[] = Array.from(arguments);
 
-	let acwArr = arr.map(arg => getLowerDiagonalBounds(arg, "acw"))
-	let cwArr = arr.map(arg => getLowerDiagonalBounds(arg, "cw"))
+	let acwArr = posArr.map((pos: TChessPosition) => getLowerDiagonalBounds(pos, "acw"));
+	let cwArr = posArr.map((pos: TChessPosition) => getLowerDiagonalBounds(pos, "cw"));
 
-	res.push(acwArr.every(pos => pos.x === acwArr[0].x && pos.y === acwArr[0].y))
-	res.push(cwArr.every(pos => pos.x === cwArr[0].x && pos.y === cwArr[0].y))
+	res = acwArr.every((pos: TChessPosition) => pos.x === acwArr[0].x && pos.y === acwArr[0].y) || cwArr.every((pos: TChessPosition) => pos.x === cwArr[0].x && pos.y === cwArr[0].y);
 
-	return res[0] || res[1]
+	return res;
 }

@@ -1,9 +1,9 @@
-import express from "express";
-let router = express.Router();
+import { Request, Response, Router } from "express";
+let router: Router = Router();
 
 import gamesRoute from "./games/index.js";
 
-router.get("/", (req, res) => {
+router.get("/", (req: Request, res: Response) => {
 	res.status(200).send({ status: "success", timestamp: Date.now() });
 })
 
