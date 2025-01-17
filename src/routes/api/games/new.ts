@@ -1,10 +1,11 @@
-import express from "express";
-let router = express.Router();
+import { Request, Response, Router } from "express";
+let router: Router = Router();
 
 import { ChessBoard } from '../../../game_src/ChessBoard.js';
 import { games, generateGameID, logicalToVisual } from "../../../game_src/util.js";
+import { ChessPiece } from "../../../game_src/ChessPiece.js";
 
-router.get("/", (req, res) => {
+router.get("/", (req: Request, res: Response) => {
 	let gameID = ""
 	do {
 		gameID = generateGameID(6);
@@ -12,7 +13,7 @@ router.get("/", (req, res) => {
 	while (games.get(gameID));
 
 	try {
-		let game = new ChessBoard();
+		let game: ChessBoard = new ChessBoard();
 		game.init();
 		games.set(gameID, game);
 
@@ -22,7 +23,7 @@ router.get("/", (req, res) => {
 			positions: game.positions,
 			currentTurn: game.currentTurn,
 			check: game.check ? logicalToVisual(game.check.position) : null,
-			checkers: game.checkers.length ? game.checkers.map(e => { return logicalToVisual(e.position) }) : game.checkers,
+			checkers: game.checkers.length ? game.checkers.map((checker: ChessPiece) => { return logicalToVisual(checker.position) }) : game.checkers,
 			checkmate: game.checkmate,
 			stalemate: game.stalemate
 		}
