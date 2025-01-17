@@ -32,5 +32,11 @@
 		"jade": "~1.11.0",
 		"morgan": "~1.10.0"
 	},
-	"packageManager": "yarn@4.6.0"
+	"packageManager": "yarn@4.6.0",
+	"devDependencies": {
+		"@types/cors": "^2.8.17",
+		"@types/express": "^5.0.0",
+		"ts-node-dev": "^2.0.0",
+		"typescript": "^5.7.3"
+	}
 }
