@@ -322,10 +322,13 @@ export class ChessBoard {
 
 			this._allowedMoves[king.color].push(createMove(checker.position.x, checker.position.y))
 		}
-
 		let availableMoves: TChessMove[] = []
 
 		if (this._check && this._checkers.length) {
+
+			// NOTE: make sure to CLOSELY notice the variable names at this part,
+			//       one variable is **allowed**Moves while the other is
+			//       **available**Moves
 			let allowedMoves = this._allowedMoves[this._check.color]
 			let possibleMoves: TChessMove[] = this._check.moves.filter(move => !move.isFriendlyPiece);
 
