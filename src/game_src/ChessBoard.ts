@@ -9,7 +9,7 @@ export class ChessBoard {
 	private _pieces: {
 		[key in CHESS_COLOR]: ChessPiece[]
 	};
-	private _allowedMoves: {
+	private _allowedMoves: { // allowedMoves is an array that stores what squares ANY of one's colored pieces can move to, this limit is usually enforced on checks
 		[key in CHESS_COLOR]: TChessMove[]
 	};
 	private attackedSquares: {
@@ -290,6 +290,9 @@ export class ChessBoard {
 			let dir: TChessPosition = getDirection(king.position, checker.position)
 
 			if (!checker.isKnight()) {
+
+				// this very complex looking for loop iterates on the squares BETWEEN the king and the checker
+				// so pieces are only allowed to generate moves on these squares so that they protect the king
 				for (
 					let i = king.position.x, j = king.position.y;
 
@@ -311,15 +314,13 @@ export class ChessBoard {
 					if (i === king.position.x && j === king.position.y)
 						continue;
 
-					// no idea why these lines exist
-					// ???
-					//this._allowedMoves[king.color].push(createMove(king, i, j))
+					// yes this is intentional
+					// however pushing this move to king's available moves isn't
+					this._allowedMoves[king.color].push(createMove(king, i, j))
 				}
 			}
 
-			// no idea why these lines exist
-			// ???
-			//this._allowedMoves[king.color].push(createMove(king, checker.position.x, checker.position.y))
+			this._allowedMoves[king.color].push(createMove(king, checker.position.x, checker.position.y))
 		}
 
 		let availableMoves: TChessMove[] = []
