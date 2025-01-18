@@ -10,7 +10,7 @@ export class ChessBoard {
 		[key in CHESS_COLOR]: ChessPiece[]
 	};
 	private _allowedMoves: { // allowedMoves is an array that stores what squares ANY of one's colored pieces can move to, this limit is usually enforced on checks
-		[key in CHESS_COLOR]: TChessMove[]
+		[key in CHESS_COLOR]: TChessPosition[]
 	};
 	private attackedSquares: {
 		[key in CHESS_COLOR]: {
@@ -55,7 +55,7 @@ export class ChessBoard {
 		return this._pieces;
 	}
 
-	public get allowedMoves(): ({ [key in CHESS_COLOR]: TChessMove[] }) {
+	public get allowedMoves(): ({ [key in CHESS_COLOR]: TChessPosition[] }) {
 		return this._allowedMoves;
 	}
 
@@ -346,11 +346,11 @@ export class ChessBoard {
 
 					// yes this is intentional
 					// however pushing this move to king's available moves isn't
-					this._allowedMoves[king.color].push(createMove(i, j))
+					this._allowedMoves[king.color].push({ x: i, y: j })
 				}
 			}
 
-			this._allowedMoves[king.color].push(createMove(checker.position.x, checker.position.y))
+			this._allowedMoves[king.color].push({ x: checker.position.x, y: checker.position.y })
 		}
 		let availableMoves: TChessMove[] = []
 
@@ -360,7 +360,7 @@ export class ChessBoard {
 			//       one variable is **allowed**Moves while the other is
 			//       **available**Moves
 			let allowedMoves = this._allowedMoves[this._check.color]
-			let possibleMoves: TChessMove[] = this._check.getMovablePositions().filter(move => !move.isFriendlyPiece);
+			let possibleMoves: TChessPosition[] = this._check.getMovablePositions().filter(move => !move.isFriendlyPiece);
 
 			for (let piece of Object.values(this._pieces[this._check.color])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
@@ -368,9 +368,9 @@ export class ChessBoard {
 
 			if (!possibleMoves.length) {
 				for (const availableMove of availableMoves) {
-					const move = allowedMoves.find((allowedMove: TChessMove) => allowedMove.x === availableMove.x && allowedMove.y === availableMove.y);
+					const move = allowedMoves.find((allowedMove: TChessPosition) => allowedMove.x === availableMove.x && allowedMove.y === availableMove.y);
 
-					if(move)
+					if (move)
 						possibleMoves.push(move);
 				}
 			}
