@@ -111,6 +111,12 @@ export class ChessPiece {
 		if (!this.isPawn())
 			return;
 
+		if (
+			(this.color != CHESS_COLOR.WHITE && this.position.y != 0) ||
+			(this.color != CHESS_COLOR.BLACK && this.position.y != 7)
+		)
+			return;
+
 		delete this.pawnInitialMove;
 		delete this.canEnPassant;
 
