@@ -25,7 +25,8 @@ router.get("/", (req: Request, res: Response) => {
 			check: game.check ? logicalToVisual(game.check.position) : null,
 			checkers: game.checkers.length ? game.checkers.map((checker: ChessPiece) => { return logicalToVisual(checker.position) }) : game.checkers,
 			checkmate: game.checkmate,
-			stalemate: game.stalemate
+			stalemate: game.stalemate,
+			eligibleForPromotion: game.eligibleForPromotion
 		}
 
 		res.send(sendObj);
