@@ -24,6 +24,8 @@ export class ChessBoard {
 	private _stalemate: boolean;
 	private _pinnedPieces: ChessPiece[];
 
+	private _eligibleForPromotion: ChessPiece | null;
+
 	// getters and setters
 	public get currentTurn(): CHESS_COLOR {
 		return this._currentTurn;
@@ -61,6 +63,10 @@ export class ChessBoard {
 		return this._pinnedPieces;
 	}
 
+	public get eligibleForPromotion(): ChessPiece | null {
+		return this._eligibleForPromotion;
+	}
+
 	constructor() {
 		this._positions = [[], [], [], [], [], [], [], []];
 		this._pieces = {
@@ -84,6 +90,7 @@ export class ChessBoard {
 		this._stalemate = false;
 
 		this._pinnedPieces = [];
+		this._eligibleForPromotion = null;
 	}
 
 	async init(): Promise<void> {
@@ -112,6 +119,15 @@ export class ChessBoard {
 
 	getOtherTurn(): CHESS_COLOR {
 		return this._currentTurn === CHESS_COLOR.BLACK ? CHESS_COLOR.WHITE : CHESS_COLOR.BLACK;
+	}
+
+	// special helper function for <ChessPiece>.promote() since <ChessBoard>.nextTurn() is private
+	onPromote() {
+		if(this._eligibleForPromotion)
+		{
+			this._eligibleForPromotion = null;
+			this.nextTurn();
+		}
 	}
 
 	private nextTurn() {
@@ -182,7 +198,16 @@ export class ChessBoard {
 		piece.position.x = newPos.x;
 		piece.position.y = newPos.y;
 
-		this.nextTurn();
+		if(piece.isPawn() && piece.isEligibleForPromotion())
+		{
+			// we don't change turns right away in this case so player can choose what they need to promote the piece to
+			// we change turns AFTER the player chooses, that is, in the <ChessPiece>.promote() function
+			this._eligibleForPromotion = piece;
+		}
+		else
+		{
+			this.nextTurn();
+		}
 
 		// do we need to unpin any pinned piece?
 		this._pinnedPieces.forEach(pinnedPiece => {

@@ -99,6 +99,16 @@ export class ChessPiece {
 		return [CHESS_PIECE_BLACK.PAWN, CHESS_PIECE_WHITE.PAWN].includes(this._type);
 	}
 
+	isEligibleForPromotion() {
+		if (!this.isPawn())
+			return false;
+
+		return (
+			(this.color === CHESS_COLOR.WHITE && this.position.y === 0) ||
+			(this.color === CHESS_COLOR.BLACK && this.position.y === 7)
+		)
+	}
+
 	getEnemyColor() {
 		return this.color === CHESS_COLOR.BLACK ? CHESS_COLOR.WHITE : CHESS_COLOR.BLACK;
 	}
@@ -122,7 +132,9 @@ export class ChessPiece {
 
 		this._type = newPiece;
 		this.setupMoveType();
-		this.getMovablePositions()
+		this.getMovablePositions();
+
+		this.board.onPromote();
 	}
 
 	castle(targetRook: ChessPiece) {
