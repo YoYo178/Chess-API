@@ -123,8 +123,7 @@ export class ChessBoard {
 
 	// special helper function for <ChessPiece>.promote() since <ChessBoard>.nextTurn() is private
 	onPromote() {
-		if(this._eligibleForPromotion)
-		{
+		if (this._eligibleForPromotion) {
 			this._eligibleForPromotion = null;
 			this.nextTurn();
 		}
@@ -163,6 +162,10 @@ export class ChessBoard {
 		if (!this.validateMove(piece, newPos))
 			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
 
+		// nuh uh promote your pawn first
+		if (this._eligibleForPromotion && piece.position.x != this._eligibleForPromotion.position.x && piece.position.y != this._eligibleForPromotion.position.y)
+			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
+
 		// Logical position
 		this._positions[piece.position.y][piece.position.x] = "";
 		this._positions[newPos.y][newPos.x] = piece.type;
@@ -198,14 +201,12 @@ export class ChessBoard {
 		piece.position.x = newPos.x;
 		piece.position.y = newPos.y;
 
-		if(piece.isPawn() && piece.isEligibleForPromotion())
-		{
+		if (piece.isPawn() && piece.isEligibleForPromotion()) {
 			// we don't change turns right away in this case so player can choose what they need to promote the piece to
 			// we change turns AFTER the player chooses, that is, in the <ChessPiece>.promote() function
 			this._eligibleForPromotion = piece;
 		}
-		else
-		{
+		else {
 			this.nextTurn();
 		}
 
@@ -253,6 +254,10 @@ export class ChessBoard {
 		if (!this.validateMove(piece, newPos))
 			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
 
+		// nuh uh promote your pawn first
+		if (this._eligibleForPromotion && piece.position.x != this._eligibleForPromotion.position.x && piece.position.y != this._eligibleForPromotion.position.y)
+			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
+
 		let targetPieceIndex = 0;
 
 		this._positions[targetPiece.position.y][targetPiece.position.x] = "";
@@ -298,7 +303,7 @@ export class ChessBoard {
 				if (move.isKillingMove && move.killTarget?.isKing()) {
 					this._check = move.killTarget;
 
-					if(!this._checkers.find((checkingPiece: ChessPiece) => checkingPiece.position.x === piece.position.x && checkingPiece.position.y === piece.position.y))
+					if (!this._checkers.find((checkingPiece: ChessPiece) => checkingPiece.position.x === piece.position.x && checkingPiece.position.y === piece.position.y))
 						this._checkers.push(piece);
 				}
 			}
@@ -355,14 +360,19 @@ export class ChessBoard {
 			//       one variable is **allowed**Moves while the other is
 			//       **available**Moves
 			let allowedMoves = this._allowedMoves[this._check.color]
-			let possibleMoves: TChessMove[] = this._check.moves.filter(move => !move.isFriendlyPiece);
+			let possibleMoves: TChessMove[] = this._check.getMovablePositions().filter(move => !move.isFriendlyPiece);
 
 			for (let piece of Object.values(this._pieces[this._check.color])) {
 				availableMoves = availableMoves.concat(piece.getMovablePositions())
 			}
 
-			for (const availableMove of availableMoves) {
-				possibleMoves = allowedMoves.filter((allowedMove: TChessMove) => allowedMove.x === availableMove.x && allowedMove.y === availableMove.y)
+			if (!possibleMoves.length) {
+				for (const availableMove of availableMoves) {
+					const move = allowedMoves.find((allowedMove: TChessMove) => allowedMove.x === availableMove.x && allowedMove.y === availableMove.y);
+
+					if(move)
+						possibleMoves.push(move);
+				}
 			}
 
 			if (!possibleMoves.length) {
