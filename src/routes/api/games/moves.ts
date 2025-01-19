@@ -94,6 +94,9 @@ router.post("/:pos", (req: Request, res: Response) => {
 			checkers: game.checkers.length ? game.checkers.map((checker: ChessPiece) => { return logicalToVisual(checker.position) }) : game.checkers,
 			checkmate: game.checkmate,
 			stalemate: game.stalemate,
+			draw: game.draw,
+			canClaimDraw: game.canClaimDraw,
+			isForcedDraw: game.isForcedDraw,
 			eligibleForPromotion: game.eligibleForPromotion ? logicalToVisual(game.eligibleForPromotion.position) : null
 		};
 

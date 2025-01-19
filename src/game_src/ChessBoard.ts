@@ -12,7 +12,7 @@ export class ChessBoard {
 	private _allowedMoves: { // allowedMoves is an array that stores what squares ANY of one's colored pieces can move to, this limit is usually enforced on checks
 		[key in CHESS_COLOR]: TChessPosition[]
 	};
-	private attackedSquares: {
+	private _attackedSquares: {
 		[key in CHESS_COLOR]: {
 			[piece in CHESS_PIECE]?: TChessMove[];
 		}
@@ -25,6 +25,13 @@ export class ChessBoard {
 	private _pinnedPieces: ChessPiece[];
 
 	private _eligibleForPromotion: ChessPiece | null;
+
+	private _draw: boolean;
+
+	private _canClaimDraw: boolean;
+	private _isForcedDraw: boolean;
+
+	private _drawCounter: number;
 
 	// getters and setters
 	public get currentTurn(): CHESS_COLOR {
@@ -67,13 +74,25 @@ export class ChessBoard {
 		return this._eligibleForPromotion;
 	}
 
+	public get draw(): boolean {
+		return this._draw;
+	}
+
+	public get canClaimDraw(): boolean {
+		return this._canClaimDraw;
+	}
+
+	public get isForcedDraw(): boolean {
+		return this._isForcedDraw;
+	}
+
 	constructor() {
 		this._positions = [[], [], [], [], [], [], [], []];
 		this._pieces = {
 			[CHESS_COLOR.WHITE]: [],
 			[CHESS_COLOR.BLACK]: []
 		};
-		this.attackedSquares = {
+		this._attackedSquares = {
 			[CHESS_COLOR.WHITE]: {},
 			[CHESS_COLOR.BLACK]: {}
 		};
@@ -91,6 +110,13 @@ export class ChessBoard {
 
 		this._pinnedPieces = [];
 		this._eligibleForPromotion = null;
+
+		this._draw = false;
+
+		this._canClaimDraw = false;
+		this._isForcedDraw = false;
+
+		this._drawCounter = 0;
 	}
 
 	async init(): Promise<void> {
@@ -102,11 +128,11 @@ export class ChessBoard {
 				if (curPiece) {
 					if (objIncludes(CHESS_PIECE_BLACK, curPiece)) {
 						this._pieces[CHESS_COLOR.BLACK].push(new ChessPiece(this, CHESS_COLOR.BLACK, curPiece, { x: j, y: i }));
-						this.attackedSquares[CHESS_COLOR.BLACK][curPiece] = [];
+						this._attackedSquares[CHESS_COLOR.BLACK][curPiece] = [];
 					}
 					else {
 						this._pieces[CHESS_COLOR.WHITE].push(new ChessPiece(this, CHESS_COLOR.WHITE, curPiece, { x: j, y: i }));
-						this.attackedSquares[CHESS_COLOR.WHITE][curPiece] = [];
+						this._attackedSquares[CHESS_COLOR.WHITE][curPiece] = [];
 					}
 				}
 			}
@@ -146,7 +172,7 @@ export class ChessBoard {
 	getAttackerOnPosition(pos: TChessPosition): ChessPiece | undefined {
 		let attackedSquares: TChessMove[] = [];
 
-		for (const squares of Object.values(this.attackedSquares[this.getOtherTurn()])) {
+		for (const squares of Object.values(this._attackedSquares[this.getOtherTurn()])) {
 			attackedSquares = attackedSquares.concat(squares);
 		}
 
@@ -186,6 +212,9 @@ export class ChessBoard {
 				if (otherPiece && otherPiece.color != piece.color)
 					piece.canEnPassant = true;
 			}
+
+			this._drawCounter = 0;
+			this._canClaimDraw = false;
 		}
 
 		if (this._check) {
@@ -239,6 +268,8 @@ export class ChessBoard {
 		if (!piece.hasMoved)
 			piece.hasMoved = true;
 
+		this._drawCounter++;
+
 		this.updateAttackedSquares();
 		this.postMove();
 
@@ -270,7 +301,10 @@ export class ChessBoard {
 
 		this._pieces[targetPiece.color].splice(targetPieceIndex, 1);
 
-		this.attackedSquares[targetPiece.color][targetPiece.type] = [];
+		this._attackedSquares[targetPiece.color][targetPiece.type] = [];
+
+		this._drawCounter = 0;
+		this._canClaimDraw = false;
 
 		return this.move(piece, newPos);
 	}
@@ -282,7 +316,7 @@ export class ChessBoard {
 	updateAttackedSquares() {
 		// clear attacked squares
 		for (let piece of this._pieces[CHESS_COLOR.BLACK].concat(this._pieces[CHESS_COLOR.WHITE])) {
-			this.attackedSquares[piece.color][piece.type] = [];
+			this._attackedSquares[piece.color][piece.type] = [];
 		}
 
 		// update attacked squares
@@ -307,7 +341,7 @@ export class ChessBoard {
 						this._checkers.push(piece);
 				}
 			}
-			this.attackedSquares[piece.color][piece.type] = this.attackedSquares[piece.color][piece.type]?.concat(attackedSquares);
+			this._attackedSquares[piece.color][piece.type] = this._attackedSquares[piece.color][piece.type]?.concat(attackedSquares);
 		}
 	}
 
@@ -387,5 +421,16 @@ export class ChessBoard {
 			if (!availableMoves.length)
 				this._stalemate = true
 		}
+
+		// 50 Move rule
+		if(this._drawCounter === 50)
+			this._canClaimDraw = true;
+
+		// 75 Move rule
+		if(this._drawCounter === 75)
+			this._isForcedDraw = true;
+
+		if(!this._check && !this._stalemate && this._isForcedDraw && !this._draw)
+			this._draw = true;
 	}
 }
