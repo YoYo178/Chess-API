@@ -80,7 +80,7 @@ router.post("/:pos", (req: Request, res: Response) => {
 			const castlePos = visualToLogical(req.body.castleTarget);
 			const castleTarget = game.getPieceOnPosition(castlePos);
 
-			if(castleTarget) {
+			if (castleTarget) {
 				piece.castle(castleTarget);
 			}
 		}

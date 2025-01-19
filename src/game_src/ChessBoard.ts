@@ -423,14 +423,14 @@ export class ChessBoard {
 		}
 
 		// 50 Move rule
-		if(this._drawCounter === 50)
+		if (this._drawCounter === 50)
 			this._canClaimDraw = true;
 
 		// 75 Move rule
-		if(this._drawCounter === 75)
+		if (this._drawCounter === 75)
 			this._isForcedDraw = true;
 
-		if(!this._check && !this._stalemate && this._isForcedDraw && !this._draw)
+		if (!this._checkmate && !this._stalemate && this._isForcedDraw && !this._draw)
 			this._draw = true;
 	}
 }
