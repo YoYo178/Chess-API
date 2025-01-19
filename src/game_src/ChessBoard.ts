@@ -1,39 +1,45 @@
 import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK, CHESS_MOVE_RESPONSES, CHESS_PIECE } from "./ChessVariables.js";
 import { TChessMove, TChessPosition } from "../types/ChessTypes.js";
-import { createMove, getDirection, objIncludes } from "./util.js";
+import { getDirection, objIncludes } from "./util.js";
 import { ChessPiece } from "./ChessPiece.js";
 
 export class ChessBoard {
-	// Properties
-	private _positions: string[][];
-	private _pieces: {
-		[key in CHESS_COLOR]: ChessPiece[]
-	};
-	private _allowedMoves: { // allowedMoves is an array that stores what squares ANY of one's colored pieces can move to, this limit is usually enforced on checks
-		[key in CHESS_COLOR]: TChessPosition[]
-	};
-	private _attackedSquares: {
-		[key in CHESS_COLOR]: {
-			[piece in CHESS_PIECE]?: TChessMove[];
-		}
-	};
-	private _currentTurn: CHESS_COLOR;
-	private _check: ChessPiece | null;
-	private _checkers: ChessPiece[];
-	private _checkmate: boolean;
-	private _stalemate: boolean;
-	private _pinnedPieces: ChessPiece[];
+	/**** Properties ****/
 
-	private _eligibleForPromotion: ChessPiece | null;
+	// An object that stores "attacked squares" of each piece for each color.
+	// "Attacked Squares" are basically the squares a piece can potentially move to,
+	// making it dangerous for enemies to move to.
+	private _attackedSquares: { [key in CHESS_COLOR]: { [piece in CHESS_PIECE]?: TChessMove[] } };
 
-	private _draw: boolean;
+	// An object that stores an array containing ONLY squares ANY of **one's colored pieces can move to** for each color (player), this limit is usually enforced on checks
+	private _allowedMoves: { [key in CHESS_COLOR]: TChessPosition[] };
 
-	private _canClaimDraw: boolean;
-	private _isForcedDraw: boolean;
+	// An object storing ChessPiece object references of each color (player)
+	// **Note**: This is **not in any way** connected to this._positions, both need to be managed separately!
+	//			 this._positions is a visual representation of the board while (technically) this._pieces
+	// 			 is a logical representation of the board.
+	private _pieces: { [key in CHESS_COLOR]: ChessPiece[] };
 
-	private _drawCounter: number;
+	private _positions: string[][]; 	// 8x8 matrix storing the entire board's positions
+	private _currentTurn: CHESS_COLOR; 	// Stores color of the player whose current turn it is
 
-	// getters and setters
+	// Game states
+	private _checkmate: boolean; 	// Did the game end in checkmate
+	private _stalemate: boolean; 	// Did the game end in stalemate
+	private _draw: boolean; 		// Did the game end in draw
+
+	private _check: ChessPiece | null; 		// The piece that's in check
+	private _checkers: ChessPiece[]; 		// The pieces that are check'ing the check'ed piece
+	private _pinnedPieces: ChessPiece[]; 	// An array that stores "pinned pieces" (A pinned piece is a piece "pinned" between an enemy and the king)
+
+	private _eligibleForPromotion: ChessPiece | null; // The piece (pawn only) that is eligible for a promotion (one at a time)
+
+	private _canClaimDraw: boolean;		// If true, lets players claim a draw (50 Move rule)
+	private _isForcedDraw: boolean;		// If true, forcefully draws the game (75 Move rule)
+
+	private _drawCounter: number;		// Internal counter to determine 50 Move rule and 75 Move rule states
+
+	/**** Public getters ****/
 	public get currentTurn(): CHESS_COLOR {
 		return this._currentTurn;
 	}

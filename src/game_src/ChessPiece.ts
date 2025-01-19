@@ -17,8 +17,8 @@ export class ChessPiece {
 	public pawnInitialMove?: boolean; // ChessBoard reassigns this property
 	public canEnPassant?: boolean; // ChessBoard reassigns this property
 
-	// King-specific
-	public hasMoved?: boolean; 	// used to determine if the King can castle, ChessBoard reassigns this as well
+	// King and Rook specific, used for Castling
+	public hasMoved?: boolean; 	// ChessBoard reassigns this property
 
 	public get position(): TChessPosition {
 		return this._position;
