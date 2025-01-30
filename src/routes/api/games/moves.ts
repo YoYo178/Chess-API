@@ -5,7 +5,7 @@ import { encodeMove, games, visualToLogical, logicalToVisual } from "../../../ga
 import { CHESS_MOVE_RESPONSES } from "../../../game_src/ChessVariables.js";
 import { ChessPiece } from "../../../game_src/ChessPiece.js";
 
-router.get("/:pos", (req: Request, res: Response) => {
+router.get("/:pieceUID", (req: Request, res: Response) => {
 	let id = req.params.gameID;
 	let game = games.get(id);
 
@@ -14,11 +14,11 @@ router.get("/:pos", (req: Request, res: Response) => {
 		return;
 	}
 
-	let pos = req.params.pos;
-	let piece = game.getPieceOnPosition(visualToLogical(pos));
+	let pieceUID = req.params.pieceUID;
+	let piece = game.getPieceByUID(pieceUID);
 
 	if (!piece) {
-		res.status(404).send({ status: "failed", message: "No piece exists on the specified position." });
+		res.status(404).send({ status: "failed", message: "No piece exists for the specified UID." });
 		return;
 	}
 
@@ -31,7 +31,7 @@ router.get("/:pos", (req: Request, res: Response) => {
 	}
 })
 
-router.post("/:pos", (req: Request, res: Response) => {
+router.post("/:pieceUID", (req: Request, res: Response) => {
 	let id = req.params.gameID;
 	let game = games.get(id);
 
@@ -40,11 +40,11 @@ router.post("/:pos", (req: Request, res: Response) => {
 		return;
 	}
 
-	let pos = req.params.pos;
-	let piece = game.getPieceOnPosition(visualToLogical(pos));
+	let pieceUID = req.params.pieceUID;
+	let piece = game.getPieceByUID(pieceUID);
 
 	if (!piece) {
-		res.status(404).send({ status: "failed", message: "No piece exists on the specified position." });
+		res.status(404).send({ status: "failed", message: "No piece exists for the specified UID." });
 		return;
 	}
 

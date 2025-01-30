@@ -12,6 +12,7 @@ export class ChessPiece {
 	public isPinned: boolean; // ChessBoard reassigns this property
 	public pinner: ChessPiece | null; // ChessBoard reassigns this property
 	private moveType: CHESS_MOVE_TYPE;
+	private _UID: string;
 
 	// Pawn-specific
 	public pawnInitialMove?: boolean; // ChessBoard reassigns this property
@@ -32,12 +33,17 @@ export class ChessPiece {
 		return this._moves;
 	}
 
-	constructor(board: ChessBoard, color: CHESS_COLOR, type: CHESS_PIECE, pos: TChessPosition) {
+	public get UID(): string {
+		return this._UID;
+	}
+
+	constructor(board: ChessBoard, color: CHESS_COLOR, type: CHESS_PIECE, pos: TChessPosition, pieceUID: string) {
 		this.board = board;
 		this.color = color;
 		this._type = type;
 		this._position = { x: pos.x, y: pos.y };
 		this._moves = []
+		this._UID = pieceUID;
 
 		this.isPinned = false;
 		this.pinner = null

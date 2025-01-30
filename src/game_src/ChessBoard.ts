@@ -1,6 +1,6 @@
 import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK, CHESS_MOVE_RESPONSES, CHESS_PIECE } from "./ChessVariables.js";
 import { TChessMove, TChessPosition } from "../types/ChessTypes.js";
-import { getDirection, objIncludes } from "./util.js";
+import { getChessPieceKey, getDirection, objIncludes } from "./util.js";
 import { ChessPiece } from "./ChessPiece.js";
 
 export class ChessBoard {
@@ -19,6 +19,8 @@ export class ChessBoard {
 	//			 this._positions is a visual representation of the board while (technically) this._pieces
 	// 			 is a logical representation of the board.
 	private _pieces: { [key in CHESS_COLOR]: ChessPiece[] };
+
+	private _piecesMap: Map<string, ChessPiece>;
 
 	private _positions: string[][]; 	// 8x8 matrix storing the entire board's positions
 	private _currentTurn: CHESS_COLOR; 	// Stores color of the player whose current turn it is
@@ -107,6 +109,7 @@ export class ChessBoard {
 			[CHESS_COLOR.BLACK]: []
 		};
 		this._currentTurn = CHESS_COLOR.WHITE;
+		this._piecesMap = new Map<string, ChessPiece>();
 
 		this._check = null;
 		this._checkers = [];
@@ -132,14 +135,15 @@ export class ChessBoard {
 				this._positions[i].push(curPiece);
 
 				if (curPiece) {
-					if (objIncludes(CHESS_PIECE_BLACK, curPiece)) {
-						this._pieces[CHESS_COLOR.BLACK].push(new ChessPiece(this, CHESS_COLOR.BLACK, curPiece, { x: j, y: i }));
-						this._attackedSquares[CHESS_COLOR.BLACK][curPiece] = [];
-					}
-					else {
-						this._pieces[CHESS_COLOR.WHITE].push(new ChessPiece(this, CHESS_COLOR.WHITE, curPiece, { x: j, y: i }));
-						this._attackedSquares[CHESS_COLOR.WHITE][curPiece] = [];
-					}
+					const pieceUID = getChessPieceKey(curPiece);
+					let currentColor = objIncludes(CHESS_PIECE_BLACK, curPiece) ? CHESS_COLOR.BLACK : CHESS_COLOR.WHITE;
+
+					const newPiece = new ChessPiece(this, currentColor, curPiece, { x: j, y: i }, pieceUID)
+
+					this._piecesMap.set(pieceUID, newPiece);
+
+					this._pieces[currentColor].push(newPiece);
+					this._attackedSquares[currentColor][curPiece] = [];
 				}
 			}
 		}
@@ -163,6 +167,10 @@ export class ChessBoard {
 
 	private nextTurn() {
 		this._currentTurn = this.getOtherTurn();
+	}
+
+	getPieceByUID(pieceUID: string): ChessPiece | undefined {
+		return this._piecesMap.get(pieceUID)
 	}
 
 	getPieceOnPosition(pos: TChessPosition): ChessPiece | undefined {
