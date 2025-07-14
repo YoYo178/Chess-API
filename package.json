@@ -33,7 +33,7 @@
 		"jade": "~1.11.0",
 		"morgan": "~1.10.0"
 	},
-	"packageManager": "yarn@4.6.0",
+	"packageManager": "yarn@4.9.2",
 	"devDependencies": {
 		"@types/cookie-parser": "^1.4.8",
 		"@types/cors": "^2.8.17",
