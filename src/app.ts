@@ -3,9 +3,9 @@ import cookieParser from "cookie-parser";
 import logger from "morgan";
 import cors from "cors"
 
-import APIRoutes from "./routes/api/index.js"
+import APIRouter from "./routes/apiRouter.js"
 
-let app: Application = express();
+const app: Application = express();
 
 app.use(cors())
 app.use(logger('dev'));
@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use("/api", APIRoutes)
+app.use("/api", APIRouter)
 
 app.get("/404", (req: Request, res: Response) => {
 	res.status(404).send("NOT FOUND")
