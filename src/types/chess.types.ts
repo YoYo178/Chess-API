@@ -19,3 +19,22 @@ export interface TChessMove {
     isPromotingMove: boolean;
     isCastlingMove: boolean;
 }
+
+export interface TChessGameState {
+    gameID: string;
+    positions: string[][];
+    currentTurn: 'white' | 'black';
+
+    check: string | null;
+    checkers: string[];
+
+    eligibleForPromotion: string | null;
+
+    checkmate: boolean;
+    stalemate: boolean;
+
+    canClaimDraw: boolean;
+    isForcedDraw: boolean;
+
+    draw: boolean;
+}
