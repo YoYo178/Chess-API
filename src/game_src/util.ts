@@ -9,63 +9,63 @@ export function getChessPieceKey(strPiece: string) {
 	if (!strPiece.length)
 		return '';
 
-    if(usedPieceKeys.length >= 32)
-        usedPieceKeys = [];
+	if (usedPieceKeys.length >= 32)
+		usedPieceKeys = [];
 
-    const pieceCode = strPiece.charCodeAt(0);
-    let str = [];
-    let usedIndex = 1;
+	const pieceCode = strPiece.charCodeAt(0);
+	let str = [];
+	let usedIndex = 1;
 
-    if (pieceCode >= CHESS_PIECE_UNICODE.BLACK_KING && pieceCode <= CHESS_PIECE_UNICODE.BLACK_PAWN) {
-        str.push("B_");
-    } else {
-        str.push("W_");
-    }
+	if (pieceCode >= CHESS_PIECE_UNICODE.BLACK_KING && pieceCode <= CHESS_PIECE_UNICODE.BLACK_PAWN) {
+		str.push("B_");
+	} else {
+		str.push("W_");
+	}
 
-    switch (pieceCode) {
-        case CHESS_PIECE_UNICODE.BLACK_KING:
-        case CHESS_PIECE_UNICODE.WHITE_KING:
-            str.push("K");
-            break;
+	switch (pieceCode) {
+		case CHESS_PIECE_UNICODE.BLACK_KING:
+		case CHESS_PIECE_UNICODE.WHITE_KING:
+			str.push("K");
+			break;
 
-        case CHESS_PIECE_UNICODE.BLACK_QUEEN:
-        case CHESS_PIECE_UNICODE.WHITE_QUEEN:
-            str.push("Q");
-            break;
+		case CHESS_PIECE_UNICODE.BLACK_QUEEN:
+		case CHESS_PIECE_UNICODE.WHITE_QUEEN:
+			str.push("Q");
+			break;
 
-        case CHESS_PIECE_UNICODE.BLACK_ROOK:
-        case CHESS_PIECE_UNICODE.WHITE_ROOK:
-            str.push("R");
-            break;
+		case CHESS_PIECE_UNICODE.BLACK_ROOK:
+		case CHESS_PIECE_UNICODE.WHITE_ROOK:
+			str.push("R");
+			break;
 
-        case CHESS_PIECE_UNICODE.BLACK_BISHOP:
-        case CHESS_PIECE_UNICODE.WHITE_BISHOP:
-            str.push("B");
-            break;
+		case CHESS_PIECE_UNICODE.BLACK_BISHOP:
+		case CHESS_PIECE_UNICODE.WHITE_BISHOP:
+			str.push("B");
+			break;
 
-        case CHESS_PIECE_UNICODE.BLACK_KNIGHT:
-        case CHESS_PIECE_UNICODE.WHITE_KNIGHT:
-            str.push("N");
-            break;
+		case CHESS_PIECE_UNICODE.BLACK_KNIGHT:
+		case CHESS_PIECE_UNICODE.WHITE_KNIGHT:
+			str.push("N");
+			break;
 
-        case CHESS_PIECE_UNICODE.BLACK_PAWN:
-        case CHESS_PIECE_UNICODE.WHITE_PAWN:
-            str.push("P");
-            break;
-    }
+		case CHESS_PIECE_UNICODE.BLACK_PAWN:
+		case CHESS_PIECE_UNICODE.WHITE_PAWN:
+			str.push("P");
+			break;
+	}
 
-    str.push(String(usedIndex))
+	str.push(String(usedIndex))
 
-    let finalString = str.join("");
-    
-    while(usedPieceKeys.includes(finalString) && usedIndex < 8) {
-        usedIndex++;
-        str[str.length - 1] = String(usedIndex);
-        finalString = str.join("");
-    }
+	let finalString = str.join("");
 
-    usedPieceKeys.push(finalString)
-    return finalString;
+	while (usedPieceKeys.includes(finalString) && usedIndex < 8) {
+		usedIndex++;
+		str[str.length - 1] = String(usedIndex);
+		finalString = str.join("");
+	}
+
+	usedPieceKeys.push(finalString)
+	return finalString;
 }
 
 export function objIncludes(obj: any, element: any): boolean {
