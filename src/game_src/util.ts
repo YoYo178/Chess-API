@@ -1,5 +1,5 @@
 import { ChessBoard } from "./ChessBoard";
-import { TChessMove, TChessPosition } from "../types/ChessTypes";
+import { TChessMove, TChessPosition } from "../types/chess.types";
 import { ChessPiece } from "./ChessPiece";
 import { CHESS_PIECE_UNICODE } from "./ChessVariables";
 

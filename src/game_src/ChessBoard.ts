@@ -1,5 +1,5 @@
 import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK, CHESS_MOVE_RESPONSES, CHESS_PIECE } from "./ChessVariables.js";
-import { TChessMove, TChessPosition } from "../types/ChessTypes.js";
+import { TChessMove, TChessPosition } from "../types/chess.types.js";
 import { getChessPieceKey, getDirection, objIncludes } from "./util.js";
 import { ChessPiece } from "./ChessPiece.js";
 

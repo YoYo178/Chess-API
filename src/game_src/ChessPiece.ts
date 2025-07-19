@@ -1,6 +1,6 @@
 import { createEnPassantMove, createFriendlyMove, createKillingMove, createMove, createPawnDiagonalMove, createPawnMove, createPawnDiagonalKillingMove, checkSameDiagonal, createPawnPromotingMove, createCastlingMove } from "./util.js";
 import { CHESS_PIECE_BLACK, CHESS_PIECE_WHITE, CHESS_MOVE_TYPE, CHESS_COLOR, CHESS_PIECE } from "./ChessVariables.js";
-import { TChessMove, TChessPosition } from "../types/ChessTypes.js";
+import { TChessMove, TChessPosition } from "../types/chess.types.js";
 import { ChessBoard } from "./ChessBoard.js";
 
 export class ChessPiece {
