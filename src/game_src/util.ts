@@ -6,6 +6,8 @@ import { CHESS_PIECE_UNICODE } from "./ChessVariables";
 let usedPieceKeys: string[] = [];
 
 export function getChessPieceKey(strPiece: string) {
+	if (!strPiece.length)
+		return '';
 
     if(usedPieceKeys.length >= 32)
         usedPieceKeys = [];
