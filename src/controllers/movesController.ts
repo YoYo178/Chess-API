@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
 
-import { encodeMove, games, logicalToVisual, visualToLogical } from "../game_src/util";
-import { CHESS_MOVE_RESPONSES } from "../game_src/ChessVariables";
-import { ChessPiece } from "../game_src/ChessPiece";
+import { ChessPiece } from "@/game_src/ChessPiece.js";
+import { CHESS_MOVE_RESPONSES } from "@/game_src/ChessVariables.js";
+import { encodeMove, games, logicalToVisual, visualToLogical } from "@/game_src/util.js";
 
 // Get status
 export const getMoves = async (req: Request, res: Response) => {
-    const id = req.params.gameID;
+    const id = String(req.params['gameID']);
     const game = games.get(id);
 
     if (!game) {
@@ -14,7 +14,7 @@ export const getMoves = async (req: Request, res: Response) => {
         return;
     }
 
-    const pieceUID = req.params.pieceUID;
+    const pieceUID = String(req.params['pieceUID']);
     const piece = game.getPieceByUID(pieceUID);
 
     if (!piece) {
@@ -33,7 +33,7 @@ export const getMoves = async (req: Request, res: Response) => {
 
 // Generate a new game
 export const movePiece = async (req: Request, res: Response) => {
-    const id = req.params.gameID;
+    const id = String(req.params['gameID']);
     const game = games.get(id);
 
     if (!game || !req.body.moveTo) {
@@ -41,7 +41,7 @@ export const movePiece = async (req: Request, res: Response) => {
         return;
     }
 
-    const pieceUID = req.params.pieceUID;
+    const pieceUID = String(req.params['pieceUID']);
     const piece = game.getPieceByUID(pieceUID);
 
     if (!piece) {

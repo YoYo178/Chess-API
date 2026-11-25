@@ -1,7 +1,7 @@
-import { ChessBoard } from "./ChessBoard";
-import { TChessMove, TChessPosition } from "../types/chess.types";
-import { ChessPiece } from "./ChessPiece";
-import { CHESS_PIECE_UNICODE } from "./ChessVariables";
+import { ChessBoard } from "@/game_src/ChessBoard.js";
+import { ChessPiece } from "@/game_src/ChessPiece.js";
+import { CHESS_PIECE_UNICODE } from "@/game_src/ChessVariables.js";
+import type { TChessMove, TChessPosition } from "@/types/chess.types.js";
 
 let usedPieceKeys: string[] = [];
 
@@ -68,26 +68,14 @@ export function getChessPieceKey(strPiece: string) {
 	return finalString;
 }
 
-export function objIncludes(obj: any, element: any): boolean {
-	let res = false;
-	for (let value of Object.values(obj)) {
-		if (value === element) {
-			res = true;
-			break;
-		}
-	}
-
-	return res;
-}
-
 export function logicalToVisual(pos: TChessPosition): string {
 	return String.fromCharCode(pos.x + 97) + String(8 - pos.y)
 }
 
 export function visualToLogical(strPos: string): TChessPosition {
 	return {
-		x: strPos[0].charCodeAt(0) - 97,
-		y: 8 - +strPos[1]
+		x: strPos.charAt(0).charCodeAt(0) - 97,
+		y: 8 - +strPos.charAt(1)
 	}
 }
 
@@ -262,6 +250,9 @@ export function createPawnDiagonalKillingMove(x: number, y: number, targetPiece:
 }
 
 export const games: Map<string, ChessBoard> = new Map();
+export const timeouts: Map<string, NodeJS.Timeout> = new Map();
+
+export const GAME_VALIDITY_IN_SECONDS = 120;
 
 export function encodeMove(moveObj: TChessMove) {
 	let move = logicalToVisual(moveObj)
@@ -322,15 +313,15 @@ export function getLowerDiagonalBounds(pos: TChessPosition, mode: "acw" | "cw"):
 export function checkSameDiagonal(...args: any): boolean {
 	let res = false;
 
-	if (!arguments.length)
+	if (!args.length)
 		return res;
 
-	let posArr: TChessPosition[] = Array.from(arguments);
+	let posArr: TChessPosition[] = Array.from(args);
 
 	let acwArr = posArr.map((pos: TChessPosition) => getLowerDiagonalBounds(pos, "acw"));
 	let cwArr = posArr.map((pos: TChessPosition) => getLowerDiagonalBounds(pos, "cw"));
 
-	res = acwArr.every((pos: TChessPosition) => pos.x === acwArr[0].x && pos.y === acwArr[0].y) || cwArr.every((pos: TChessPosition) => pos.x === cwArr[0].x && pos.y === cwArr[0].y);
+	res = acwArr.every((pos: TChessPosition) => pos.x === acwArr.at(0)?.x && pos.y === acwArr.at(0)?.y) || cwArr.every((pos: TChessPosition) => pos.x === cwArr.at(0)?.x && pos.y === cwArr.at(0)?.y);
 
 	return res;
 }

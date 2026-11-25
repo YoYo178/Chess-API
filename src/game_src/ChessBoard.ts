@@ -1,45 +1,59 @@
-import { defaultBoard, CHESS_COLOR, CHESS_PIECE_BLACK, CHESS_MOVE_RESPONSES, CHESS_PIECE } from "./ChessVariables.js";
-import { TChessMove, TChessPosition } from "../types/chess.types.js";
-import { getChessPieceKey, getDirection, objIncludes } from "./util.js";
+import type { TChessMove, TChessPlayer, TChessPosition } from "../types/chess.types.js";
 import { ChessPiece } from "./ChessPiece.js";
+import { CHESS_COLOR, CHESS_MOVE_RESPONSES, CHESS_PIECE_BLACK, defaultBoard, type CHESS_PIECE } from "./ChessVariables.js";
+import { getChessPieceKey, getDirection } from "./util.js";
+
+function assertIndexBound(index: number): asserts index is 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 {
+	if (index < 0 || index > 7)
+		throw new Error('Index out of bounds');
+}
 
 export class ChessBoard {
 	/**** Properties ****/
+	private _players: Map<CHESS_COLOR, TChessPlayer> = new Map();
 
 	// An object that stores "attacked squares" of each piece for each color.
 	// "Attacked Squares" are basically the squares a piece can potentially move to,
 	// making it dangerous for enemies to move to.
-	private _attackedSquares: { [key in CHESS_COLOR]: { [piece in CHESS_PIECE]?: TChessMove[] } };
+	private _attackedSquares: { [key in CHESS_COLOR]: { [piece in CHESS_PIECE]?: TChessMove[] } } = {
+		[CHESS_COLOR.WHITE]: {},
+		[CHESS_COLOR.BLACK]: {}
+	};;
 
 	// An object that stores an array containing ONLY squares ANY of **one's colored pieces can move to** for each color (player), this limit is usually enforced on checks
-	private _allowedMoves: { [key in CHESS_COLOR]: TChessPosition[] };
+	private _allowedMoves: { [key in CHESS_COLOR]: TChessPosition[] } = {
+		[CHESS_COLOR.WHITE]: [],
+		[CHESS_COLOR.BLACK]: []
+	};;
 
-	// An object storing ChessPiece object references of each color (player)
-	// **Note**: This is **not in any way** connected to this._positions, both need to be managed separately!
+	// Properties storing all ChessPiece(s) of the game
+	// **Note**: This is **not** connected to this._positions, both need to be managed separately!
 	//			 this._positions is a visual representation of the board while (technically) this._pieces
 	// 			 is a logical representation of the board.
-	private _pieces: { [key in CHESS_COLOR]: ChessPiece[] };
+	private _pieces: { [key in CHESS_COLOR]: ChessPiece[] } = { // Pieces array stored by color
+		[CHESS_COLOR.WHITE]: [],
+		[CHESS_COLOR.BLACK]: []
+	};
+	private _piecesMap: Map<string, ChessPiece> = new Map(); // Pieces mapped to their unique ID
 
-	private _piecesMap: Map<string, ChessPiece>;
-
-	private _positions: string[][]; 	// 8x8 matrix storing the entire board's positions
-	private _currentTurn: CHESS_COLOR; 	// Stores color of the player whose current turn it is
+	private _positions: [string[], string[], string[], string[], string[], string[], string[], string[]] = [[], [], [], [], [], [], [], []]; 	// 8x8 matrix storing the entire board's positions
+	private _currentTurn: CHESS_COLOR = CHESS_COLOR.WHITE; 	// Stores color of the player whose current turn it is
 
 	// Game states
-	private _checkmate: boolean; 	// Did the game end in checkmate
-	private _stalemate: boolean; 	// Did the game end in stalemate
-	private _draw: boolean; 		// Did the game end in draw
+	private _checkmate: boolean = false; 	// Did the game end in checkmate
+	private _stalemate: boolean = false; 	// Did the game end in stalemate
+	private _draw: boolean = false; 		// Did the game end in draw
 
-	private _check: ChessPiece | null; 		// The piece that's in check
-	private _checkers: ChessPiece[]; 		// The pieces that are check'ing the check'ed piece
-	private _pinnedPieces: ChessPiece[]; 	// An array that stores "pinned pieces" (A pinned piece is a piece "pinned" between an enemy and the king)
+	private _check: ChessPiece | null = null; 		// The piece that's in check
+	private _checkers: ChessPiece[] = []; 		// The pieces that are check'ing the check'ed piece
+	private _pinnedPieces: ChessPiece[] = []; 	// An array that stores "pinned pieces" (A pinned piece is a piece "pinned" between an enemy and the king)
 
-	private _eligibleForPromotion: ChessPiece | null; // The piece (pawn only) that is eligible for a promotion (one at a time)
+	private _eligibleForPromotion: ChessPiece | null = null; // The piece (pawn only) that is eligible for a promotion (one at a time)
 
-	private _canClaimDraw: boolean;		// If true, lets players claim a draw (50 Move rule)
-	private _isForcedDraw: boolean;		// If true, forcefully draws the game (75 Move rule)
+	private _canClaimDraw: boolean = false;		// If true, lets players claim a draw (50 Move rule)
+	private _isForcedDraw: boolean = false;		// If true, forcefully draws the game (75 Move rule)
 
-	private _drawCounter: number;		// Internal counter to determine 50 Move rule and 75 Move rule states
+	private _drawCounter: number = 0;		// TODO: Internal counter to determine 50 Move rule and 75 Move rule states
 
 	/**** Public getters ****/
 	public get currentTurn(): CHESS_COLOR {
@@ -94,63 +108,61 @@ export class ChessBoard {
 		return this._isForcedDraw;
 	}
 
-	constructor() {
-		this._positions = [[], [], [], [], [], [], [], []];
-		this._pieces = {
-			[CHESS_COLOR.WHITE]: [],
-			[CHESS_COLOR.BLACK]: []
-		};
-		this._attackedSquares = {
-			[CHESS_COLOR.WHITE]: {},
-			[CHESS_COLOR.BLACK]: {}
-		};
-		this._allowedMoves = {
-			[CHESS_COLOR.WHITE]: [],
-			[CHESS_COLOR.BLACK]: []
-		};
-		this._currentTurn = CHESS_COLOR.WHITE;
-		this._piecesMap = new Map<string, ChessPiece>();
+	public get players(): ({ name: string, color: CHESS_COLOR } | null)[] {
+		return [...this._players.entries()].map(([color, player]) => { return !!player ? { name: player.name, color } : null });
+	}
 
-		this._check = null;
-		this._checkers = [];
-
-		this._checkmate = false;
-		this._stalemate = false;
-
-		this._pinnedPieces = [];
-		this._eligibleForPromotion = null;
-
-		this._draw = false;
-
-		this._canClaimDraw = false;
-		this._isForcedDraw = false;
-
-		this._drawCounter = 0;
+	constructor(player: TChessPlayer) {
+		this._players.set(CHESS_COLOR.WHITE, player);
 	}
 
 	async init(): Promise<void> {
 		for (let i = 0; i != 8; i++) {
 			for (let j = 0; j != 8; j++) {
+				assertIndexBound(i);
 				const curPiece: CHESS_PIECE = defaultBoard[i][j] as CHESS_PIECE;
-				this._positions[i].push(curPiece);
+				const pieceUID = getChessPieceKey(curPiece);
+				this._positions[i]?.push(pieceUID);
 
 				if (curPiece) {
-					const pieceUID = getChessPieceKey(curPiece);
-					let currentColor = objIncludes(CHESS_PIECE_BLACK, curPiece) ? CHESS_COLOR.BLACK : CHESS_COLOR.WHITE;
+					// @ts-ignore
+					const currentColor = Object.values(CHESS_PIECE_BLACK).includes(curPiece) ? CHESS_COLOR.BLACK : CHESS_COLOR.WHITE;
+					const piece = new ChessPiece(
+						this,
+						currentColor,
+						curPiece,
+						{ x: j, y: i },
+						pieceUID
+					);
 
-					const newPiece = new ChessPiece(this, currentColor, curPiece, { x: j, y: i }, pieceUID)
+					this._piecesMap.set(pieceUID, piece);
 
-					this._piecesMap.set(pieceUID, newPiece);
-
-					this._pieces[currentColor].push(newPiece);
+					this._pieces[currentColor].push(piece);
 					this._attackedSquares[currentColor][curPiece] = [];
 				}
 			}
 		}
 
-		this._currentTurn = CHESS_COLOR.WHITE;
-
 		this.updateAttackedSquares();
+	}
+
+	hasPlayer(playerID: string) {
+		return !![...this._players.values()].find(p => p.id === playerID)
+	}
+
+	join(player: TChessPlayer) {
+		if (this._players.get(CHESS_COLOR.WHITE)?.id === player.id || this._players.size === 2)
+			return false;
+
+		this._players.set(CHESS_COLOR.BLACK, player);
+		return true;
+	}
+
+	drawGame(_playerID: string) {
+		this._draw = true;
+		this._players.delete(this._currentTurn);
+
+		// TODO
 	}
 
 	getOtherTurn(): CHESS_COLOR {
@@ -174,9 +186,9 @@ export class ChessBoard {
 	}
 
 	getPieceOnPosition(pos: TChessPosition): ChessPiece | undefined {
-		const concatPiecesArr = this._pieces[CHESS_COLOR.BLACK].concat(this._pieces[CHESS_COLOR.WHITE]);
+		const concatPiecesArr = [...this._piecesMap.values()];
 
-		const res = concatPiecesArr.find((piece: ChessPiece) =>
+		const res = concatPiecesArr.find(piece =>
 			piece.position.x === pos.x && piece.position.y === pos.y
 		);
 
@@ -207,8 +219,10 @@ export class ChessBoard {
 			return CHESS_MOVE_RESPONSES.INVALID_MOVE;
 
 		// Logical position
+		assertIndexBound(piece.position.y);
+		assertIndexBound(newPos.y);
 		this._positions[piece.position.y][piece.position.x] = "";
-		this._positions[newPos.y][newPos.x] = piece.type;
+		this._positions[newPos.y][newPos.x] = piece.UID;
 
 		// EN PASSANT
 		if (piece.isPawn() && piece.pawnInitialMove) {
@@ -305,6 +319,7 @@ export class ChessBoard {
 
 		let targetPieceIndex = 0;
 
+		assertIndexBound(targetPiece.position.y)
 		this._positions[targetPiece.position.y][targetPiece.position.x] = "";
 
 		this._pieces[targetPiece.color].map((piece: ChessPiece, index: number) => {
@@ -329,12 +344,12 @@ export class ChessBoard {
 
 	updateAttackedSquares() {
 		// clear attacked squares
-		for (let piece of this._pieces[CHESS_COLOR.BLACK].concat(this._pieces[CHESS_COLOR.WHITE])) {
+		for (let piece of this._piecesMap.values()) {
 			this._attackedSquares[piece.color][piece.type] = [];
 		}
 
 		// update attacked squares
-		for (let piece of this._pieces[CHESS_COLOR.BLACK].concat(this._pieces[CHESS_COLOR.WHITE])) {
+		for (let piece of this._piecesMap.values()) {
 			let attackedSquares: TChessMove[] = piece.getMovablePositions();
 			for (let [i, v] of Object.entries(attackedSquares)) {
 				const index: number = i as unknown as number; // dun'ask'me'y
@@ -355,15 +370,15 @@ export class ChessBoard {
 						this._checkers.push(piece);
 				}
 			}
-			this._attackedSquares[piece.color][piece.type] = this._attackedSquares[piece.color][piece.type]?.concat(attackedSquares);
+			this._attackedSquares[piece.color][piece.type] = this._attackedSquares[piece.color][piece.type]?.concat(attackedSquares) ?? [];
 		}
 	}
 
 	// never meant to be called from outside the class
 	private postMove() {
 		if (this._checkers.length === 1) {
-			let king: ChessPiece = this._check as ChessPiece; // explicit cast because this._check will not be null if this._checkers.length > 0
-			let checker: ChessPiece = this._checkers[0];
+			let king = this._check as ChessPiece; // explicit cast because this._check will not be null if this._checkers.length > 0
+			let checker = this._checkers.at(0) as ChessPiece;
 
 			let dir: TChessPosition = getDirection(king.position, checker.position)
 
@@ -436,6 +451,7 @@ export class ChessBoard {
 				this._stalemate = true
 		}
 
+		/* TODO */
 		// 50 Move rule
 		if (this._drawCounter === 50)
 			this._canClaimDraw = true;
@@ -443,6 +459,7 @@ export class ChessBoard {
 		// 75 Move rule
 		if (this._drawCounter === 75)
 			this._isForcedDraw = true;
+		/* TODO */
 
 		if (!this._checkmate && !this._stalemate && this._isForcedDraw && !this._draw)
 			this._draw = true;

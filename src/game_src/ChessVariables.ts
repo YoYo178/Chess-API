@@ -1,4 +1,4 @@
-export const defaultBoard = [
+export const defaultBoard: [string[], string[], string[], string[], string[], string[], string[], string[]] = [
 	["♜", "♞", "♝", "♛", "♚", "♝", "♞", "♜"],
 	["♟︎", "♟︎", "♟︎", "♟︎", "♟︎", "♟︎", "♟︎", "♟︎"],
 	["", "", "", "", "", "", "", ""],

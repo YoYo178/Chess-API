@@ -1,48 +1,46 @@
 {
-	"name": "chess-api",
-	"description": "A RESTful Chess API made using Node.JS.",
-	"version": "1.0",
-	"author": "-_YoYo178_-",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/YoYo178/Chess-API.git"
-	},
-	"homepage": "https://github.com/YoYo178/Chess-API",
-	"bugs": "https://github.com/YoYo178/Chess-API/issues",
-	"keywords": [
-		"chess",
-		"chess-api",
-		"api",
-		"rest-api",
-		"restful-api",
-		"game"
-	],
-	"main": "./bin/www",
-	"scripts": {
-		"start": "node ./dist/bin/www.js",
-		"build": "tsc -p tsconfig.json",
-		"build-debug": "tsc -p tsconfig.json --inlineSourceMap"
-	},
-	"dependencies": {
-		"cookie-parser": "~1.4.7",
-		"cors": "^2.8.5",
-		"debug": "~4.4.1",
-		"express": "^5.1.0",
-		"http-errors": "~2.0.0",
-		"jade": "~1.11.0",
-		"morgan": "~1.10.0"
-	},
-	"packageManager": "yarn@4.9.2",
-	"devDependencies": {
-		"@types/cookie-parser": "^1.4.9",
-		"@types/cors": "^2.8.19",
-		"@types/debug": "^4.1.12",
-		"@types/express": "^5.0.3",
-		"@types/morgan": "^1.9.10",
-		"ts-node": "^10.9.2",
-		"ts-node-dev": "^2.0.0",
-		"tsconfig-paths": "^4.2.0",
-		"typescript": "^5.8.3"
-	}
+  "name": "chess-api",
+  "version": "1.0.0",
+  "description": "A RESTful Chess API made using Node.JS.",
+  "author": "-_YoYo178_-",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YoYo178/Chess-API.git"
+  },
+  "homepage": "https://github.com/YoYo178/Chess-API",
+  "bugs": "https://github.com/YoYo178/Chess-API/issues",
+  "keywords": [
+    "chess",
+    "chess-api",
+    "api",
+    "rest-api",
+    "restful-api",
+    "game"
+  ],
+  "type": "module",
+  "main": "./build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+
+    "start": "node ./build/index.js",
+    "build": "tsc -b",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/morgan": "^1.9.10",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "morgan": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@12.23.0+sha512.02da94ffaf133f46074322afe552f90d40b5f71ae259aefbccdacc5085b1d617e98d65e0131f5748b9b67445978ee5055d7d59a473f1eef0d504854fefcd5975"
 }

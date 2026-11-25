@@ -1,4 +1,4 @@
-import express, { Application, NextFunction, Request, Response } from "express";
+import express, { type Application, type NextFunction, type Request, type Response } from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 import cors from "cors"
@@ -15,12 +15,12 @@ app.use(cookieParser());
 
 app.use("/api", APIRouter)
 
-app.get("/404", (req: Request, res: Response) => {
+app.get("/404", (_req: Request, res: Response) => {
 	res.status(404).send("NOT FOUND")
 })
 
 // No matching routes were found, redirect to /404
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((_req: Request, res: Response, _next: NextFunction) => {
 	res.redirect("/404")
 })
 
